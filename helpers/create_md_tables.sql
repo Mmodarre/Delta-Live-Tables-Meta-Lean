@@ -1,5 +1,5 @@
 % sql CREATE
-OR REPLACE TABLE <CATALOG>.<SCHEMA>.silver_dataflowspec_table (
+CREATE OR REPLACE TABLE <CATALOG>.<SCHEMA>.silver_dataflowspec_table (
     dataFlowId STRING,
     dataFlowGroup STRING,
     sourceFormat STRING,
@@ -29,7 +29,7 @@ OR REPLACE TABLE <CATALOG>.<SCHEMA>.silver_dataflowspec_table (
     updatedBy STRING
 );
 
-CREATE TABLE <CATALOG>.<SCHEMA>.silver_dataflowspec_table (
+CREATE OR REPLACE TABLE <CATALOG>.<SCHEMA>.silver_dataflowspec_table (
     dataFlowId STRING,
     dataFlowGroup STRING,
     sourceFormat STRING,
