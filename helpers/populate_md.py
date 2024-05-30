@@ -35,7 +35,7 @@ def populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,source
 ])
   data = [(dataFlowId, dataFlowGroup, sourceFormat, sourceDetails, readerConfigOptions,cloudFileNotificationsConfig, schema, targetFormat, targetDetails, tableProperties,partitionColumns, cdcApplyChanges, dataQualityExpectations, quarantineTargetDetails,quarantineTableProperties, version,createDate, createdBy,updateDate, updatedBy)]
 
-  df = spark.createDataFrame(data, schema_definition)
+  df = spark.createDataFrame(data, schema_definition) # type: ignore
   df.write.format("delta").mode("append").saveAsTable(BRONZE_MD_TABLE)
 
 
@@ -68,5 +68,5 @@ def populate_silver(SILVER_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,source
          selectExp,whereClause,partitionColumns, cdcApplyChanges, dataQualityExpectations,
          version,createDate, createdBy,updateDate, updatedBy)]
 
-  df = spark.createDataFrame(data, schema_definition)
+  df = spark.createDataFrame(data, schema_definition) # type: ignore
   df.write.format("delta").mode("append").saveAsTable(SILVER_MD_TABLE)
