@@ -1,4 +1,4 @@
-% sql CREATE
+
 CREATE OR REPLACE TABLE <CATALOG>.<SCHEMA>.silver_dataflowspec_table (
     dataFlowId STRING,
     dataFlowGroup STRING,
