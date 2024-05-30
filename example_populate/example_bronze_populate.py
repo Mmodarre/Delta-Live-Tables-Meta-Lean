@@ -1,5 +1,6 @@
 import datetime
 import helpers.populate_md as pm
+from pyspark.sql.functions import current_user
 
 
 dataFlowId = '101-Items'
