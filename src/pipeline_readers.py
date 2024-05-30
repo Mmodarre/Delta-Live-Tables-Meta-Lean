@@ -31,57 +31,34 @@ class PipelineReaders:
         logger.info("In read_dlt_cloud_files func")
         source_path = bronze_dataflow_spec.sourceDetails["path"]
         reader_config_options = bronze_dataflow_spec.readerConfigOptions
-        cloudFileNotificationsConfig = bronze_dataflow_spec.cloudFileNotificationsConfig
         
         ## If the cloudFiles.useNotifications is set to True, then read the secrets from the KeyVault
         ## and set the secrets to the reader_config_options
         ## Also remove the extra configs from the reader_config_options
-        subcription_config_name = None
-        tenant_id_config_name = None
-        resourcegroup_config_name = None
-        client_id_config_name = None
-        client_secret_config_name = None
-        config_json_file_path = None
-        kv_secret_scope_config_name = None
         if "cloudFiles.useNotifications" in reader_config_options and reader_config_options["cloudFiles.useNotifications"]:
             dbutils = PipelineReaders.get_db_utils(spark)
+            cloudFileNotificationsConfig = bronze_dataflow_spec.cloudFileNotificationsConfig
 
-            subcription_config_name = cloudFileNotificationsConfig.get("cloudFiles.subscriptionId")
-            tenant_id_config_name = cloudFileNotificationsConfig.get("cloudFiles.tenantId")
-            resourcegroup_config_name = cloudFileNotificationsConfig.get("cloudFiles.resourceGroup")
-            client_id_config_name = cloudFileNotificationsConfig.get("cloudFiles.clientId")
-            client_secret_config_name = cloudFileNotificationsConfig.get("cloudFiles.clientSecret")
-            config_json_file_path = cloudFileNotificationsConfig.get("configJsonFilePath")
-            kv_secret_scope_config_name = cloudFileNotificationsConfig.get("kvSecretScope")
-
-            #print(config_json_file_path)
-
-            # ## REMOVE THE JSON CONFIG FILE PATH AND KV_SECRET_SCOPE
-            # del reader_config_options["configJsonFilePath"]
-            # del reader_config_options["kvSecretScope"]  
-
-            ## FROM JSON CONFIG FILE READ THE KV_SECRET_NAMES
-            config_file = dbutils.fs.head(config_json_file_path)
+            ## FROM JSON CONFIG FILE READ THE CONFIGS
+            config_file = dbutils.fs.head(cloudFileNotificationsConfig.get("configJsonFilePath"))
             config = json.loads(config_file)
-            subscription_id =  config[subcription_config_name]
-            ##tenant_id_kv_secret_name = config[tenant_id_config_name]
-            tenant_id = config[tenant_id_config_name] ###### CHECK
-            resource_group = config[resourcegroup_config_name]
-            client_id_kv_secret_name = config[client_id_config_name]
-            client_secret_kv_secret_name = config[client_secret_config_name]
-            kv_secret_scope = config[kv_secret_scope_config_name] 
-
-            ## READ THE KV SECRETS
-            #tenant_id = dbutils.secrets.get(kv_secret_scope,tenant_id_kv_secret_name)
-            client_id = dbutils.secrets.get(kv_secret_scope,client_id_kv_secret_name)
-            client_secret = dbutils.secrets.get(kv_secret_scope,client_secret_kv_secret_name)
-
+        
             ## SET THE SECRETS TO THE READER CONFIG OPTIONS
-            reader_config_options["cloudFiles.subscriptionId"] = subscription_id
-            reader_config_options["cloudFiles.tenantId"] = tenant_id
-            reader_config_options["cloudFiles.resourceGroup"] = resource_group
-            reader_config_options["cloudFiles.clientId"] = client_id
-            reader_config_options["cloudFiles.clientSecret"] = client_secret
+            reader_config_options["cloudFiles.subscriptionId"] = config[cloudFileNotificationsConfig.get("cloudFiles.subscriptionId")]
+            reader_config_options["cloudFiles.resourceGroup"] = config[cloudFileNotificationsConfig.get("cloudFiles.resourceGroup")]
+            
+            reader_config_options["cloudFiles.clientId"] = dbutils.secrets.get(
+                config[cloudFileNotificationsConfig.get("kvSecretScope")] 
+                ,config[cloudFileNotificationsConfig.get("cloudFiles.clientId")])
+            
+            reader_config_options["cloudFiles.clientSecret"] = dbutils.secrets.get(
+                config[cloudFileNotificationsConfig.get("kvSecretScope")] 
+                ,config[cloudFileNotificationsConfig.get("cloudFiles.clientSecret")])
+            
+            reader_config_options["cloudFiles.tenantId"] = dbutils.secrets.get(
+                config[cloudFileNotificationsConfig.get("kvSecretScope")] 
+                ,config[cloudFileNotificationsConfig.get("cloudFiles.tenantId")])
+            
 
         if schema_json and bronze_dataflow_spec.sourceFormat.lower() != "delta":
             schema = StructType.fromJson(schema_json)
