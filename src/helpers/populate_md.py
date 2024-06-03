@@ -6,10 +6,8 @@ from pyspark.sql.types import (
     ArrayType,
     TimestampType
 )
-import datetime
-from pyspark.sql.functions import current_user
 
-def populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,readerConfigOptions,cloudFileNotificationsConfig,schema,targetFormat,targetDetails,tableProperties,partitionColumns,cdcApplyChanges,dataQualityExpectations,quarantineTargetDetails,quarantineTableProperties,version,createDate,createdBy,updateDate,updatedBy):
+def populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,readerConfigOptions,cloudFileNotificationsConfig,schema,targetFormat,targetDetails,tableProperties,partitionColumns,cdcApplyChanges,dataQualityExpectations,quarantineTargetDetails,quarantineTableProperties,version,createDate,createdBy,updateDate,updatedBy,spark):
 
   schema_definition = StructType([
     StructField('dataFlowId', StringType(), True),
@@ -39,7 +37,7 @@ def populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,source
   df.write.format("delta").mode("append").saveAsTable(BRONZE_MD_TABLE)
 
 
-def populate_silver(SILVER_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,readerConfigOptions,targetFormat,targetDetails,tableProperties,selectExp,whereClause,partitionColumns,cdcApplyChanges,dataQualityExpectations,version,createDate,createdBy,updateDate,updatedBy):
+def populate_silver(SILVER_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,readerConfigOptions,targetFormat,targetDetails,tableProperties,selectExp,whereClause,partitionColumns,cdcApplyChanges,dataQualityExpectations,version,createDate,createdBy,updateDate,updatedBy,spark):
 
   schema_definition = StructType(
         [

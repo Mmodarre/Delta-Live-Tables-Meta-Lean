@@ -1,0 +1,18 @@
+resources:
+  pipelines:
+    dlt_meta_bronze:
+      name: dlt_meta_bronze
+      clusters:
+        - label: default
+          num_workers: 1
+          node_type_id: Standard_D4s_v5
+      configuration:
+        "bronze.dataflowspecTable": "mehdidatalake_catalog${var.env}.dlt_meta_dataflowspecs_1.b_test"
+        "layer": "bronze"
+        "bronze.group": "B1"
+      libraries:
+        - notebook:
+            path: ../src/init_dlt_meta_pipeline.py
+      channel: CURRENT
+      target: retail_cdc
+      catalog: mehdidatalake_catalog_${var.env}

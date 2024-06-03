@@ -1,0 +1,48 @@
+
+CREATE OR REPLACE TABLE <CATALOG>.<SCHEMA>.bronze_dataflowspec_table (
+    dataFlowId STRING,
+    dataFlowGroup STRING,
+    sourceFormat STRING,
+    sourceDetails MAP < STRING,STRING >,
+    readerConfigOptions MAP < STRING, STRING >,
+    cloudFileNotificationsConfig MAP < STRING,STRING >,
+    targetFormat STRING,
+    targetDetails MAP < STRING, STRING >,
+    tableProperties MAP < STRING, STRING >,
+    schema STRING,
+    partitionColumns ARRAY < STRING >,
+    cdcApplyChanges STRING,
+    dataQualityExpectations STRING,
+    quarantineTargetDetails MAP < STRING, STRING >,
+    quarantineTableProperties MAP < STRING,STRING >,
+    version STRING,
+    createDate TIMESTAMP,
+    createdBy STRING,
+    updateDate TIMESTAMP,
+    updatedBy STRING
+);
+
+CREATE OR REPLACE TABLE <CATALOG>.<SCHEMA>.silver_dataflowspec_table (
+    dataFlowId STRING,
+    dataFlowGroup STRING,
+    sourceFormat STRING,
+    sourceDetails MAP < STRING,
+    STRING >,
+    readerConfigOptions MAP < STRING,
+    STRING >,
+    targetFormat STRING,
+    targetDetails MAP < STRING,
+    STRING >,
+    tableProperties MAP < STRING,
+    STRING >,
+    selectExp ARRAY < STRING >,
+    whereClause ARRAY < STRING >,
+    partitionColumns ARRAY < STRING >,
+    cdcApplyChanges STRING,
+    dataQualityExpectations STRING,
+    version STRING,
+    createDate TIMESTAMP,
+    createdBy STRING,
+    updateDate TIMESTAMP,
+    updatedBy STRING
+)

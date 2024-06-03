@@ -1,0 +1,18 @@
+resources:
+  jobs:
+    populate_bronze_job:
+      name: populate_bronze_job
+      tasks:
+        - task_key: populate_bronze
+          email_notifications: {}
+          run_if: ALL_SUCCESS
+          notebook_task:
+            base_parameters:
+              env: ${var.env}
+            notebook_path: ../src/populate_bronze_job.py
+            source: WORKSPACE
+      queue:
+        enabled: true
+      email_notifications: {}
+      webhook_notifications: {}
+      max_concurrent_runs: 1
