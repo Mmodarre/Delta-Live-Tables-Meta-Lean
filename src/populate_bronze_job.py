@@ -6,8 +6,8 @@ dbutils.widgets.text('env',defaultValue='')
 from dlt_helpers.populate_md import populate_bronze
 import datetime
 from pyspark.sql.functions import current_user
-import datetime
-from pyspark.sql.functions import current_user
+
+# COMMAND ----------
 dataFlowId = '100-Customers'
 dataFlowGroup = "B1"+dbutils.widgets.get('env')
 sourceFormat = "cloudFiles"

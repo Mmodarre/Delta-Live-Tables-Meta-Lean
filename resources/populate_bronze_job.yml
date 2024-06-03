@@ -1,7 +1,20 @@
 resources:
   jobs:
-    populate_bronze_job:
-      name: populate_bronze_job
+    populate_bronze_silver_job:
+      name: populate_bronze_silver_job
+      job_clusters:
+        - job_cluster_key: populate_bronze_silver_job_culster
+          new_cluster:
+            runtime_engine: STANDARD
+            azure_attributes:
+              availability: ON_DEMAND_AZURE
+              first_on_demand: 1
+              spot_bid_max_price: -1
+            num_workers: 1
+            data_security_mode: SINGLE_USER
+            node_type_id: Standard_D4s_v5
+            spark_version: 14.3.x-scala2.12
+            enable_elastic_disk: true
       tasks:
         - task_key: populate_bronze
           email_notifications: {}
@@ -10,6 +23,14 @@ resources:
             base_parameters:
               env: ${var.env}
             notebook_path: ../src/populate_bronze_job.py
+            source: WORKSPACE
+        - task_key: populate_silver
+          email_notifications: {}
+          run_if: ALL_SUCCESS
+          notebook_task:
+            base_parameters:
+              env: ${var.env}
+            notebook_path: ../src/populate_silver_job.py
             source: WORKSPACE
       queue:
         enabled: true
