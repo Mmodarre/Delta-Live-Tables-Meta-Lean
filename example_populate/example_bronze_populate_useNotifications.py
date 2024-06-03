@@ -2,12 +2,12 @@ import datetime
 from pyspark.sql.functions import current_user
 import dlt_helpers.populate_md as pm
 
-dbutils.widgets.text('env',defaultValue='_dev')
+dbutils.widgets.text('env',defaultValue='_dev')# type: ignore
 
 dataFlowId = '100-Customers'
 dataFlowGroup = "B1"
 sourceFormat = "cloudFiles"
-sourceDetails = {"path":"/Volumes/mehdidatalake_catalog"+ dbutils.widgets.get('env') +"/retail_cdc/retail_landing/cdc_raw/customers","source_database":"customers","source_table":"customers"}
+sourceDetails = {"path":"/Volumes/mehdidatalake_catalog"+ dbutils.widgets.get('env') +"/retail_cdc/retail_landing/cdc_raw/customers","source_database":"customers","source_table":"customers"}# type: ignore
 readerConfigOptions ={
         "cloudFiles.format": "json",
         "cloudFiles.rescuedDataColumn": "_rescued_data",
@@ -26,7 +26,7 @@ cloudFileNotificationsConfig = {
     }
 schema = None
 targetFormat = 'delta'
-targetDetails = {"database":"mehdidatalake_catalog"+ dbutils.widgets.get('env') +".retail_cdc","table":"customers_dlt_meta"}
+targetDetails = {"database":"mehdidatalake_catalog"+ dbutils.widgets.get('env') +".retail_cdc","table":"customers_dlt_meta"} # type: ignore
 tableProperties = None
 partitionColumns = None
 cdcApplyChanges = None
@@ -35,9 +35,9 @@ quarantineTargetDetails = None
 quarantineTableProperties = None
 createDate = datetime.datetime.now()
 updateDate = datetime.datetime.now()
-createdBy = spark.range(1).select(current_user()).head()[0]
-updatedBy = spark.range(1).select(current_user()).head()[0]
-BRONZE_MD_TABLE = "mehdidatalake_catalog"+ dbutils.widgets.get('env') +".dlt_meta_dataflowspecs_1.b_test"
+createdBy = spark.range(1).select(current_user()).head()[0] # type: ignore
+updatedBy = spark.range(1).select(current_user()).head()[0] # type: ignore
+BRONZE_MD_TABLE = "mehdidatalake_catalog"+ dbutils.widgets.get('env') +".dlt_meta_dataflowspecs_1.b_test" # type: ignore
 
 
 

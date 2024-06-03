@@ -15,4 +15,4 @@ resources:
             path: ../src/init_dlt_meta_pipeline.py
       channel: CURRENT
       target: retail_cdc
-      catalog: mehdidatalake_catalog_${var.env}
+      catalog: mehdidatalake_catalog${var.env}
