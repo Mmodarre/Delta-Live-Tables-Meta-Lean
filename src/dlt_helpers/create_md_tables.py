@@ -36,7 +36,7 @@ spark.sql('CREATE TABLE IF NOT EXISTS mehdidatalake_catalog'+dbutils.widgets.get
     dataFlowId STRING, \
     dataFlowGroup STRING, \
     sourceFormat STRING, \
-    sourceDetails MAP < ST RING, \
+    sourceDetails MAP < STRING, \
     STRING >, \
     readerConfigOptions MAP < STRING, \
     STRING >, \
