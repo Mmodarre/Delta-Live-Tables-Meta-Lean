@@ -11,7 +11,7 @@ resources:
               first_on_demand: 1
               spot_bid_max_price: -1
             num_workers: 1
-            data_security_mode:
+            data_security_mode: USER_ISOLATION
             node_type_id: Standard_D4s_v5
             spark_version: 14.3.x-scala2.12
             enable_elastic_disk: true
