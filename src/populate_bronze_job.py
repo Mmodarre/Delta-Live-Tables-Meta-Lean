@@ -1,9 +1,14 @@
-import datetime
-import dlt_helpers.populate_md as pm
-from pyspark.sql.functions import current_user
+# Databricks notebook source
+dbutils.widgets.text('env',defaultValue='')
 
-dbutils.widgets.text('env',defaultValue='_dev')
-dataFlowId = '110-Customers'
+# COMMAND ----------
+
+from dlt_helpers.populate_md import populate_bronze
+import datetime
+from pyspark.sql.functions import current_user
+import datetime
+from pyspark.sql.functions import current_user
+dataFlowId = '100-Customers'
 dataFlowGroup = "B1"+dbutils.widgets.get('env')
 sourceFormat = "cloudFiles"
 sourceDetails = {"path":"/Volumes/mehdidatalake_catalog"+dbutils.widgets.get("env")+"/retail_cdc/retail_landing/cdc_raw/customers","source_database":"customers","source_table":"customers"}
@@ -36,8 +41,8 @@ createDate = datetime.datetime.now()
 updateDate = datetime.datetime.now()
 createdBy = spark.range(1).select(current_user()).head()[0]
 updatedBy = spark.range(1).select(current_user()).head()[0]
-BRONZE_MD_TABLE = "mehdidatalake_catalog"+ dbutils.widgets.get('env') +".dlt_meta_dataflowspecs_1.b_test"
+BRONZE_MD_TABLE = 'mehdidatalake_catalog'+dbutils.widgets.get("env")+'.dlt_meta_dataflowspecs_1.b_test'
 
 
 
-pm.populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,readerConfigOptions,cloudFileNotificationsConfig,schema,targetFormat,targetDetails,tableProperties,partitionColumns,cdcApplyChanges,dataQualityExpectations,quarantineTargetDetails,quarantineTableProperties,createDate,createdBy,updateDate,updatedBy,spark)
+populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,readerConfigOptions,cloudFileNotificationsConfig,schema,targetFormat,targetDetails,tableProperties,partitionColumns,cdcApplyChanges,dataQualityExpectations,quarantineTargetDetails,quarantineTableProperties,createDate,createdBy,updateDate,updatedBy,spark)

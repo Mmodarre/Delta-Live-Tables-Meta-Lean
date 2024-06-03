@@ -1,5 +1,5 @@
 # Databricks notebook source
-from src.dataflow_pipeline import *
+from dlt_meta_lean.dataflow_pipeline import *
 layer = spark.conf.get("layer", None)
-from src.dataflow_pipeline import DataflowPipeline
+from dlt_meta_lean.dataflow_pipeline import DataflowPipeline
 DataflowPipeline.invoke_dlt_pipeline(spark, layer)
