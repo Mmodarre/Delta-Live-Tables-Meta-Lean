@@ -41,7 +41,7 @@ createDate = datetime.datetime.now()
 updateDate = datetime.datetime.now()
 createdBy = spark.range(1).select(current_user()).head()[0]
 updatedBy = spark.range(1).select(current_user()).head()[0]
-BRONZE_MD_TABLE = 'mehdidatalake_catalog'+dbutils.widgets.get("env")+'.dlt_meta_dataflowspecs_1.b_test'
+BRONZE_MD_TABLE = "mehdidatalake_catalog"+ dbutils.widgets.get('env')+"._meta.bronze_dataflowspec_table" # type: ignore
 
 
 

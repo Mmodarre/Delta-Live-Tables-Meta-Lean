@@ -1,9 +1,9 @@
 resources:
   jobs:
-    populate_bronze_silver_job:
-      name: populate_bronze_silver_job
+    populate_metadata_job:
+      name: populate_metadata_job
       job_clusters:
-        - job_cluster_key: populate_bronze_silver_job_culster
+        - job_cluster_key: populate_metadata_job_culster
           new_cluster:
             runtime_engine: STANDARD
             azure_attributes:
@@ -11,14 +11,26 @@ resources:
               first_on_demand: 1
               spot_bid_max_price: -1
             num_workers: 1
-            data_security_mode: SINGLE_USER
+            data_security_mode:
             node_type_id: Standard_D4s_v5
             spark_version: 14.3.x-scala2.12
             enable_elastic_disk: true
       tasks:
+        - task_key: create_md_schema_tables
+          email_notifications: {}
+          job_cluster_key: populate_metadata_job_culster
+          run_if: ALL_SUCCESS
+          notebook_task:
+            base_parameters:
+              env: ${var.env}
+            notebook_path: ../src/dlt_helpers/create_md_tables.py
+            source: WORKSPACE
         - task_key: populate_bronze
           email_notifications: {}
+          job_cluster_key: populate_metadata_job_culster
           run_if: ALL_SUCCESS
+          depends_on:
+            - task_key: create_md_schema_tables
           notebook_task:
             base_parameters:
               env: ${var.env}
@@ -26,7 +38,10 @@ resources:
             source: WORKSPACE
         - task_key: populate_silver
           email_notifications: {}
+          job_cluster_key: populate_metadata_job_culster
           run_if: ALL_SUCCESS
+          depends_on:
+            - task_key: create_md_schema_tables
           notebook_task:
             base_parameters:
               env: ${var.env}
