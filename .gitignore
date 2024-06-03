@@ -6,4 +6,4 @@ __pycache__
 .databricks
 config.json
 .databricks
-
+.DS_Store

@@ -29,7 +29,7 @@ createDate = datetime.datetime.now()
 updateDate = datetime.datetime.now()
 createdBy = spark.range(1).select(current_user()).head()[0]
 updatedBy = spark.range(1).select(current_user()).head()[0]
-SILVER_MD_TABLE = "mehdidatalake_catalog"+ dbutils.widgets.get('env')+"._meta.bronze_dataflowspec_table" # type: ignore
+SILVER_MD_TABLE = "mehdidatalake_catalog"+ dbutils.widgets.get('env')+"._meta.silver_dataflowspec_table" # type: ignore
 
 
 populate_silver(SILVER_MD_TABLE,dataFlowId, dataFlowGroup, sourceFormat, sourceDetails, readerConfigOptions, targetFormat, targetDetails, tableProperties,selectExp,whereClause,partitionColumns, cdcApplyChanges, dataQualityExpectations,createDate, createdBy,updateDate, updatedBy,spark)
