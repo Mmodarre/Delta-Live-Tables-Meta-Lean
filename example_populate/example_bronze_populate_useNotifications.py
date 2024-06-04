@@ -1,9 +1,14 @@
+#Databricks notebook source
+# COMMAND ----------
+dbutils.widgets.text('env',defaultValue='_dev')# type: ignore
+# COMMAND ----------
 import datetime
 from pyspark.sql.functions import current_user
 import dlt_helpers.populate_md as pm
 
-dbutils.widgets.text('env',defaultValue='_dev')# type: ignore
 
+
+# COMMAND ----------
 dataFlowId = '100-Customers'
 dataFlowGroup = "B1"
 sourceFormat = "cloudFiles"
