@@ -7,7 +7,6 @@ from pyspark.sql.types import (
     TimestampType
 )
 from pyspark.sql.functions import *
-from delta.tables import *
 
 ## Function to populate the Bronze Metadata table
 ##
@@ -53,10 +52,10 @@ def populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,source
     StructField('dataQualityExpectations', StringType(), True),
     StructField('quarantineTargetDetails', MapType(StringType(), StringType(), True), True),
     StructField('quarantineTableProperties', MapType(StringType(), StringType(), True), True),
-    StructField('createDate', TimestampType(), True),
-    StructField('createdBy', StringType(), True),
-    StructField('updateDate', TimestampType(), True),
-    StructField('updatedBy', StringType(), True)
+    StructField('createDate', TimestampType(), True), ## NEED TO REMOVE
+    StructField('createdBy', StringType(), True), ## NEED TO REMOVE
+    StructField('updateDate', TimestampType(), True), ## NEED TO REMOVE
+    StructField('updatedBy', StringType(), True) ## NEED TO REMOVE
 ])
   data = [(dataFlowId, dataFlowGroup, sourceFormat, sourceDetails, readerConfigOptions,cloudFileNotificationsConfig, schema, targetFormat, targetDetails, tableProperties,partitionColumns, cdcApplyChanges, dataQualityExpectations, quarantineTargetDetails,quarantineTableProperties,createDate, createdBy,updateDate, updatedBy)]
   ## Create a dataframe from the data
@@ -199,10 +198,10 @@ def populate_silver(SILVER_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,source
             StructField("partitionColumns", ArrayType(StringType(), True), True),
             StructField("cdcApplyChanges", StringType(), True),
             StructField("dataQualityExpectations", StringType(), True),
-            StructField("createDate", TimestampType(), True),
-            StructField("createdBy", StringType(), True),
-            StructField("updateDate", TimestampType(), True),
-            StructField("updatedBy", StringType(), True),
+            StructField("createDate", TimestampType(), True), ## NEED TO REMOVE
+            StructField("createdBy", StringType(), True), ## NEED TO REMOVE
+            StructField("updateDate", TimestampType(), True), ## NEED TO REMOVE
+            StructField("updatedBy", StringType(), True), ## NEED TO REMOVE
         ]
     )
   
