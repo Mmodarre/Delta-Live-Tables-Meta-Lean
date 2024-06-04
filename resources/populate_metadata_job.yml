@@ -17,8 +17,8 @@ resources:
             enable_elastic_disk: true
       tasks:
         - task_key: create_md_schema_tables
+          job_cluster_key: populate_metadata_job_culster
           email_notifications: {}
-          #job_cluster_key: populate_metadata_job_culster
           run_if: ALL_SUCCESS
           notebook_task:
             base_parameters:
@@ -26,8 +26,8 @@ resources:
             notebook_path: ../src/dlt_helpers/create_md_tables.py
             source: WORKSPACE
         - task_key: populate_bronze
+          job_cluster_key: populate_metadata_job_culster
           email_notifications: {}
-          #job_cluster_key: populate_metadata_job_culster
           run_if: ALL_SUCCESS
           depends_on:
             - task_key: create_md_schema_tables
@@ -37,8 +37,8 @@ resources:
             notebook_path: ../src/populate_bronze_job.py
             source: WORKSPACE
         - task_key: populate_silver
+          job_cluster_key: populate_metadata_job_culster
           email_notifications: {}
-          #job_cluster_key: populate_metadata_job_culster
           run_if: ALL_SUCCESS
           depends_on:
             - task_key: create_md_schema_tables

@@ -9,7 +9,7 @@ from pyspark.sql.functions import current_user
 
 # COMMAND ----------
 dataFlowId = '100-Customers'
-dataFlowGroup = "B1"+dbutils.widgets.get('env')
+dataFlowGroup = "B1"
 sourceFormat = "cloudFiles"
 sourceDetails = {"path":"/Volumes/mehdidatalake_catalog"+dbutils.widgets.get("env")+"/retail_cdc/retail_landing/cdc_raw/customers","source_database":"customers","source_table":"customers"}
 readerConfigOptions ={

@@ -36,15 +36,11 @@ spark.sql('CREATE TABLE IF NOT EXISTS mehdidatalake_catalog'+dbutils.widgets.get
     dataFlowId STRING, \
     dataFlowGroup STRING, \
     sourceFormat STRING, \
-    sourceDetails MAP < STRING, \
-    STRING >, \
-    readerConfigOptions MAP < STRING, \
-    STRING >, \
+    sourceDetails MAP < STRING, STRING >, \
+    readerConfigOptions MAP < STRING, STRING >, \
     targetFormat STRING, \
-    targetDetails MAP < STRING, \
-    STRING >, \
-    tableProperties MAP < STRING, \
-    STRING >, \
+    targetDetails MAP < STRING,STRING >, \
+    tableProperties MAP < STRING,STRING >, \
     selectExp ARRAY < STRING >, \
     whereClause ARRAY < STRING >, \
     partitionColumns ARRAY < STRING >, \
