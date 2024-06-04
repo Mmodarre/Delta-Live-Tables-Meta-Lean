@@ -4,12 +4,12 @@
 dbutils.widgets.text('env',defaultValue='_dev')
 
 # COMMAND ----------
+
 import datetime
 import dlt_helpers.populate_md as pm
 from pyspark.sql.functions import current_user
 
-
-## COMMAND ----------
+# COMMAND ----------
 
 dataFlowId = '110-Customers'
 dataFlowGroup = "B1"
