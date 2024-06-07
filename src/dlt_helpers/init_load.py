@@ -41,6 +41,6 @@ def perform_initial_load(initalLoadTableList=[]):
     ## Write the data that is only in the seed table to the DLT landing folder
     data_only_in_seed_table_df.write.format("parquet").mode("append").save(table["dlt_landing_folder"])
 
-
+## EXAMPLE USAGE
 tables_to_initial_load = [{"seed_table":"mehdidatalake_catalog.retail_cdc.customer_init_load_seed","dlt_landing_folder":"/Volumes/mehdidatalake_catalog/retail_cdc/retail_landing/cdc_raw/customers_init_load_dlt"}]
 perform_initial_load(tables_to_initial_load)
