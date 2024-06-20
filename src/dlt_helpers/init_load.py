@@ -35,7 +35,7 @@ def perform_initial_load(initalLoadTableList=[]):
       if i.name not in df_seed.schema.fieldNames():
         append_colunms.append(i.name)
         print(f"Adding {i.name} from {table['dlt_landing_folder']} to {table['seed_table']}")
-        f_seed = df_seed.withColumn(i.name, lit(None).cast(i.dataType))
+        df_seed = df_seed.withColumn(i.name, lit(None).cast(i.dataType))
     
     ## Loop through the schema of the seed table and check if the column is of type BooleanType
     ## If it is, cast it to BooleanType
