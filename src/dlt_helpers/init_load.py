@@ -1,5 +1,6 @@
 from pyspark.sql.types import *
 from pyspark.sql.functions import lit
+from pyspark.sql.functions import col
 
 ##  Function to perform initial load
 ##  The function takes a list of tables to perform initial load
@@ -48,9 +49,10 @@ def perform_initial_load(initalLoadTableList=[]):
 
     ## Reorder df_seed columns to match df_dlt columns
     df_seed = df_seed.select(*df_dlt.columns)
-    
+
+
     ## Get the data that is only in the seed table
-    data_only_in_seed_table_df = df_seed.subtract(df_dlt)
+    data_only_in_seed_table_df = df_seed.join(df_dlt, on=[col(df_seed.table['pk_col']) == col(df_dlt.table['pk_col'])], how='leftanti')
     
     print(f"Writing {data_only_in_seed_table_df.count()} records to {table['dlt_landing_folder']}")
     ## Write the data that is only in the seed table to the DLT landing folder
@@ -62,7 +64,7 @@ def perform_initial_load(initalLoadTableList=[]):
 
 tables_to_initial_load = [
   {"seed_table":"<CATALOG>.<SCHEMA>.<TABLE NAME>",
-   "dlt_landing_folder":"/Volumes/<CATALOG>/<SCHEMA></<VOLUME>/<FOLDER>..../<TABLE NAME>/"}]
+   "dlt_landing_folder":"/Volumes/<CATALOG>/<SCHEMA></<VOLUME>/<FOLDER>..../<TABLE NAME>/","pk_col":"<PRIMARY KEY COLUMN>"}]
 
 perform_initial_load(tables_to_initial_load)
 '''
