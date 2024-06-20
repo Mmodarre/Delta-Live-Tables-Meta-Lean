@@ -46,6 +46,9 @@ def perform_initial_load(initalLoadTableList=[]):
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
         print(f"Casting {i.name} from IntegerType() to BooleanType in {table['seed_table']}")
 
+    ## Reorder df_seed columns to match df_dlt columns
+    df_seed = df_seed.select(*df_dlt.columns)
+    
     ## Get the data that is only in the seed table
     data_only_in_seed_table_df = df_seed.subtract(df_dlt)
     
