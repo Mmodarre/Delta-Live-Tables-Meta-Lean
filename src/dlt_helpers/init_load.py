@@ -20,7 +20,7 @@ def perform_initial_load(initalLoadTableList=[]):
     ## Loop through the schema of the seed table and check if the column is not in the DLT table
     ## all to lower case to avoid case sensitivity
     for i in df_seed.schema.fields:
-      if i.name.lower not in list(map(str.lower,df_dlt.schema.fieldNames())):
+      if i.name.lower not in [x.lower() for x in df_dlt.schema.fieldNames()]:
         exclude_colunms.append(i.name)
 
     ## If it is not, add it to the list of columns to exclude
@@ -33,7 +33,7 @@ def perform_initial_load(initalLoadTableList=[]):
     ## If it is not, add it to the list of columns to exclude
     ## This is to handle the case where the column is in the DLT table but not in the seed table
     for i in df_dlt.schema.fields:
-      if i.name.lower not in list(map(str.lower,df_seed.schema.fieldNames())):
+      if i.name.lower not in [x.lower() for x in df_seed.schema.fieldNames()]:
         append_colunms.append(i.name)
         print(f"Adding {i.name} from {table['dlt_landing_folder']} to {table['seed_table']}")
         df_seed = df_seed.withColumn(i.name, lit(None).cast(i.dataType))
