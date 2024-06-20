@@ -1,4 +1,5 @@
 from pyspark.sql.types import *
+from pyspark.sql.functions import lit
 
 ##  Function to perform initial load
 ##  The function takes a list of tables to perform initial load
@@ -14,6 +15,7 @@ def perform_initial_load(initalLoadTableList=[]):
     df_dlt = spark.read.format("parquet").load(table["dlt_landing_folder"])
     ## variable to hold columns to exclude from seed table
     exclude_colunms = []
+    append_colunms = []
     
     ## Loop through the schema of the seed table and check if the column is not in the DLT table
     for i in df_seed.schema.fields:
@@ -25,6 +27,15 @@ def perform_initial_load(initalLoadTableList=[]):
     if exclude_colunms and len(exclude_colunms) > 0 :
       print(f"Removing {exclude_colunms} from {table['seed_table']}")
       df_seed = df_seed.drop(*exclude_colunms)
+
+    ## Loop through the schema of the dlt table and check if the column is not in the seed table
+    ## If it is not, add it to the list of columns to exclude
+    ## This is to handle the case where the column is in the DLT table but not in the seed table
+    for i in df_dlt.schema.fields:
+      if i.name not in df_seed.schema.fieldNames():
+        append_colunms.append(i.name)
+        print(f"Adding {i.name} from {table['dlt_landing_folder']} to {table['seed_table']}")
+        f_seed = df_seed.withColumn(i.name, lit(None).cast(i.dataType))
     
     ## Loop through the schema of the seed table and check if the column is of type BooleanType
     ## If it is, cast it to BooleanType
@@ -37,13 +48,15 @@ def perform_initial_load(initalLoadTableList=[]):
     ## Get the data that is only in the seed table
     data_only_in_seed_table_df = df_seed.subtract(df_dlt)
     
-    print(f"Writing {data_only_in_seed_table.count()} records to {table['dlt_landing_folder']}")
+    print(f"Writing {data_only_in_seed_table_df.count()} records to {table['dlt_landing_folder']}")
     ## Write the data that is only in the seed table to the DLT landing folder
     data_only_in_seed_table_df.write.format("parquet").mode("append").save(table["dlt_landing_folder"])
 
 ## EXAMPLE USAGE
+'''
 tables_to_initial_load = [
   {"seed_table":"<CATALOG>.<SCHEMA>.<TABLE NAME>",
    "dlt_landing_folder":"/Volumes/<CATALOG>/<SCHEMA></<VOLUME>/<FOLDER>..../<TABLE NAME>/"}]
 
 perform_initial_load(tables_to_initial_load)
+'''
