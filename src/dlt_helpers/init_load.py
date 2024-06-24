@@ -41,14 +41,16 @@ def perform_initial_load(initalLoadTableList=[]):
         print(f"Adding {i.name} from {table['dlt_landing_folder']} to {table['seed_table']}")
         df_seed = df_seed.withColumn(i.name, lit(None).cast(i.dataType))
     
-    ## Loop through the schema of the seed table and check if the column is of type BooleanType
-    ## If it is, cast it to BooleanType
-    ## This is to handle the case where the column is of type IntegerType in the seed table and BooleanType in the DLT table
+    ## Loop through the schema of the DLT table
+    ## This is to handle the case where the column is of different data type in the seed table and DLT table
     for i in df_dlt.schema.fields:
+    ## cast all integer types to boolean
+    ## This is to handle the case where the column is of type IntegerType in the seed table and BooleanType in the DLT table
       if i.dataType == BooleanType():
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
         print(f"Casting {i.name} from IntegerType() to BooleanType in {table['seed_table']}")
-      ## cast all decimal types to decimal(38,18)
+    ## cast all decimal types to decimal(38,18)
+    ## This is to handle the case where the column is of type DecimalType(any,any) in the seed table to Decimal(38,18) in the DLT table
       if i.dataType == DecimalType():
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("decimal(38,18)"))
         print(f"Casting {i.name} from DecimalType() to Decimal(38,18) in {table['seed_table']}")
