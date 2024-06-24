@@ -46,7 +46,7 @@ def perform_initial_load(initalLoadTableList=[]):
     for i in df_dlt.schema.fields:
     ## cast all integer types to boolean
     ## This is to handle the case where the column is of type IntegerType in the seed table and BooleanType in the DLT table
-      if i.dataType == BooleanType():
+      if isinstance(i.dataType, BooleanType):
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
         print(f"Casting {i.name} from IntegerType() to BooleanType in {table['seed_table']}")
     ## cast all decimal types to decimal(38,18)
