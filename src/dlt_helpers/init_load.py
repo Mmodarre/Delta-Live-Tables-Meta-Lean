@@ -50,18 +50,20 @@ def perform_initial_load(initalLoadTableList=[]):
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
         print(f"Casting {i.name} from IntegerType() to BooleanType in {table['seed_table']}")
     ## cast all decimal types to decimal(38,18)
-    ## This is to handle the case where the column is of type DecimalType(any,any) in the seed table to Decimal(38,18) in the DLT table
-      if i.dataType == DecimalType():
+    ## This is to handle the case where the column is of type DecimalType(any,any) in the seed table,
+    ## cast to Decimal(38,18) in the DLT table
+      if isinstance(i.dataType, DecimalType):
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("decimal(38,18)"))
         print(f"Casting {i.name} from DecimalType() to Decimal(38,18) in {table['seed_table']}")
       
 
     ## Reorder df_seed columns to match df_dlt columns
     df_seed = df_seed.select(*df_dlt.columns)
-    pk_col = table["pk_col"]
-
     
-    ## Get the data that is only in the seed table
+    ## Get the primary key column
+    pk_col = table["pk_col"]
+    
+    ## Using Left Anti Join to get the data that is only in the seed table
     data_only_in_seed_table_df = df_seed.join(df_dlt, on=[df_seed[pk_col] == df_dlt[pk_col]], how='leftanti')
 
     ## Select only columns in df_seed
