@@ -7,15 +7,18 @@ from pyspark.sql.functions import lit
 ## @type initalLoadTableList: List
 ## @return None
 def perform_initial_load(initalLoadTableList=[]):
+  ## Data Format Variable
+  data_format = 'parquet'
   ## Loop through the list of tables to perform initial load
   for table in initalLoadTableList:
     ## Read the seed table
     df_seed = spark.read.table(table["seed_table"])
     ## Read the DLT landing folder
-    df_dlt = spark.read.format("parquet").load(table["dlt_landing_folder"])
+    df_dlt = spark.read.format(data_format).load(table["dlt_landing_folder"])
     ## variable to hold columns to exclude from seed table
     exclude_colunms = []
     append_colunms = []
+    
     
     ## Loop through the schema of the seed table and check if the column is not in the DLT table
     ## all to lower case to avoid case sensitivity
@@ -50,16 +53,16 @@ def perform_initial_load(initalLoadTableList=[]):
     df_seed = df_seed.select(*df_dlt.columns)
     pk_col = table["pk_col"]
 
-
+    
     ## Get the data that is only in the seed table
-    #data_only_in_seed_table_df = df_seed.join(df_dlt, on=[df_seed[pk_col] == df_dlt[pk_col]], how='leftanti')
-    
-    data_only_in_seed_table_df = df_seed.subtract(df_dlt)
-    
-    
+    data_only_in_seed_table_df = df_seed.join(df_dlt, on=[df_seed[pk_col] == df_dlt[pk_col]], how='leftanti')
+
+    ## Select only columns in df_seed
+    data_only_in_seed_table_df = data_only_in_seed_table_df.select(*df_dlt.columns)
+
     print(f"Writing {data_only_in_seed_table_df.count()} records to {table['dlt_landing_folder']}")
     ## Write the data that is only in the seed table to the DLT landing folder
-    data_only_in_seed_table_df.write.format("parquet").mode("append").save(table["dlt_landing_folder"])
+    data_only_in_seed_table_df.write.format(data_format).mode("append").save(table["dlt_landing_folder"])
 
 
 ''' 
