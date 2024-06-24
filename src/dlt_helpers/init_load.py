@@ -52,7 +52,10 @@ def perform_initial_load(initalLoadTableList=[]):
 
 
     ## Get the data that is only in the seed table
-    data_only_in_seed_table_df = df_seed.join(df_dlt, on=[df_seed[pk_col] == df_dlt[pk_col]], how='leftanti')
+    #data_only_in_seed_table_df = df_seed.join(df_dlt, on=[df_seed[pk_col] == df_dlt[pk_col]], how='leftanti')
+    
+    data_only_in_seed_table_df = df_seed.subtract(df_dlt)
+    
     
     print(f"Writing {data_only_in_seed_table_df.count()} records to {table['dlt_landing_folder']}")
     ## Write the data that is only in the seed table to the DLT landing folder
