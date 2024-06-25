@@ -16,36 +16,32 @@ def perform_initial_load(initalLoadTableList=[]):
 
     ## Read the DLT landing folder
     df_dlt = spark.read.format(data_format).load(table["dlt_landing_folder"])
-    ## variable to hold columns to exclude from seed table
-    exclude_colunms = []
-    
     
     ## Loop through the schema of the seed table and check if the column is not in the DLT table
-    ## all to lower case to avoid case sensitivity
+    ## If it is not, remove it from the df_seed
     for i in df_seed.schema.fields:
       if i.name.lower() not in [x.lower() for x in df_dlt.schema.fieldNames()]:
-        exclude_colunms.append(i.name)
-
-    ## If it is not, add it to the list of columns to exclude
-    ## This is to handle the case where the column is in the seed table but not in the DLT table
-    if exclude_colunms and len(exclude_colunms) > 0 :
-      print(f"Removing {exclude_colunms} from {table['seed_table']}")
-      df_seed = df_seed.drop(*exclude_colunms)
-
-    ## Loop through the schema of the dlt table and check if the column is not in the seed table
+        print(f"Removing {i.name} from {table['seed_table']}")
+        df_seed = df_seed.drop(i.name)
+  
+    ## Loop through the schema of the dlt table
     for i in df_dlt.schema.fields:
-      ## If it is not, add it to the list of columns to exclude
-      ## This is to handle the case where the column is in the DLT table but not in the seed table
+      ## Check if the column is not in the seed table
+      ## If it is not, add it to the df_seed
+      ## This is to handle the case where the column 
+      ## is in the DLT table but not in the seed table
       if i.name.lower() not in [x.lower() for x in df_seed.schema.fieldNames()]:
         print(f"Adding {i.name} from {table['dlt_landing_folder']} to {table['seed_table']}")
         df_seed = df_seed.withColumn(i.name, lit(None).cast(i.dataType))
       ## cast all integer types to boolean
-      ## This is to handle the case where the column is of type IntegerType in the seed table and BooleanType in the DLT table
+      ## This is to handle the case where the column is of
+      ## type IntegerType in the seed table and BooleanType in the DLT table
       if isinstance(i.dataType, BooleanType):
         print(f"Casting {i.name} from IntegerType() to BooleanType in {table['seed_table']}")
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
       ## cast all decimal types to decimal(38,18)
-      ## This is to handle the case where the column is of type DecimalType(any,any) in the seed table,
+      ## This is to handle the case where the column
+      ## is of type DecimalType(any,any) in the seed table,
       ## cast to Decimal(38,18) in the DLT table
       if isinstance(i.dataType, DecimalType):
         print(f"Casting {i.name} from DecimalType() to Decimal(38,18) in {table['seed_table']}")
