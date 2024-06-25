@@ -70,9 +70,12 @@ def perform_initial_load(initalLoadTableList=[]):
     ## Select only columns in df_seed
     data_only_in_seed_table_df = data_only_in_seed_table_df.select(*df_dlt.columns)
 
-    print(f"Writing {data_only_in_seed_table_df.count()} records to {table['dlt_landing_folder']}")
+    if data_only_in_seed_table_df.count() > 0:
+      print(f"Writing {data_only_in_seed_table_df.count()} records to {table['dlt_landing_folder']}")
     ## Write the data that is only in the seed table to the DLT landing folder
-    data_only_in_seed_table_df.write.format(data_format).mode("append").save(table["dlt_landing_folder"])
+      data_only_in_seed_table_df.write.format(data_format).mode("append").save(table["dlt_landing_folder"])
+    else:
+      print(f"No records to write to {table['dlt_landing_folder']}")
 
 
 ''' 
