@@ -13,8 +13,7 @@ def perform_initial_load(initalLoadTableList=[]):
   for table in initalLoadTableList:
     ## Read the seed table
     df_seed = spark.read.table(table["seed_table"])
-    ## Drop duplicates from the seed table
-    df_seed = df_seed.dropDuplicates()
+
     ## Read the DLT landing folder
     df_dlt = spark.read.format(data_format).load(table["dlt_landing_folder"])
     ## variable to hold columns to exclude from seed table
@@ -59,6 +58,8 @@ def perform_initial_load(initalLoadTableList=[]):
 
     ## Reorder df_seed columns to match df_dlt columns
     df_seed = df_seed.select(*df_dlt.columns)
+    ## Drop duplicates from the seed table
+    df_seed = df_seed.dropDuplicates()
     
     ## Get the primary key column
     pk_col = table["pk_col"]
