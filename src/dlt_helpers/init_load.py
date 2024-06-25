@@ -26,6 +26,7 @@ def perform_initial_load(initalLoadTableList=[]):
   
     ## Loop through the schema of the dlt table
     for i in df_dlt.schema.fields:
+
       ## Check if the column is not in the seed table
       ## If it is not, add it to the df_seed
       ## This is to handle the case where the column 
@@ -33,12 +34,14 @@ def perform_initial_load(initalLoadTableList=[]):
       if i.name.lower() not in [x.lower() for x in df_seed.schema.fieldNames()]:
         print(f"Adding {i.name} from {table['dlt_landing_folder']} to {table['seed_table']}")
         df_seed = df_seed.withColumn(i.name, lit(None).cast(i.dataType))
+      
       ## cast all integer types to boolean
       ## This is to handle the case where the column is of
       ## type IntegerType in the seed table and BooleanType in the DLT table
       if isinstance(i.dataType, BooleanType):
         print(f"Casting {i.name} from IntegerType() to BooleanType in {table['seed_table']}")
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
+      
       ## cast all decimal types to decimal(38,18)
       ## This is to handle the case where the column
       ## is of type DecimalType(any,any) in the seed table,
@@ -51,6 +54,7 @@ def perform_initial_load(initalLoadTableList=[]):
 
     ## Reorder df_seed columns to match df_dlt columns
     df_seed = df_seed.select(*df_dlt.columns)
+    
     ## Drop duplicates from the seed table
     df_seed = df_seed.dropDuplicates()
     
@@ -63,6 +67,7 @@ def perform_initial_load(initalLoadTableList=[]):
     ## Select only columns in df_seed
     data_only_in_seed_table_df = data_only_in_seed_table_df.select(*df_dlt.columns)
 
+    ## Check if there are records to write to the DLT landing folder
     if data_only_in_seed_table_df.count() > 0:
       print(f"Writing {data_only_in_seed_table_df.count()} records to {table['dlt_landing_folder']}")
     ## Write the data that is only in the seed table to the DLT landing folder
