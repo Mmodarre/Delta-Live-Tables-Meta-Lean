@@ -33,27 +33,24 @@ def perform_initial_load(initalLoadTableList=[]):
       df_seed = df_seed.drop(*exclude_colunms)
 
     ## Loop through the schema of the dlt table and check if the column is not in the seed table
-    ## If it is not, add it to the list of columns to exclude
-    ## This is to handle the case where the column is in the DLT table but not in the seed table
     for i in df_dlt.schema.fields:
+      ## If it is not, add it to the list of columns to exclude
+      ## This is to handle the case where the column is in the DLT table but not in the seed table
       if i.name.lower() not in [x.lower() for x in df_seed.schema.fieldNames()]:
         print(f"Adding {i.name} from {table['dlt_landing_folder']} to {table['seed_table']}")
         df_seed = df_seed.withColumn(i.name, lit(None).cast(i.dataType))
-    
-    ## Loop through the schema of the DLT table
-    ## This is to handle the case where the column is of different data type in the seed table and DLT table
-    for i in df_dlt.schema.fields:
-    ## cast all integer types to boolean
-    ## This is to handle the case where the column is of type IntegerType in the seed table and BooleanType in the DLT table
+      ## cast all integer types to boolean
+      ## This is to handle the case where the column is of type IntegerType in the seed table and BooleanType in the DLT table
       if isinstance(i.dataType, BooleanType):
-        df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
         print(f"Casting {i.name} from IntegerType() to BooleanType in {table['seed_table']}")
-    ## cast all decimal types to decimal(38,18)
-    ## This is to handle the case where the column is of type DecimalType(any,any) in the seed table,
-    ## cast to Decimal(38,18) in the DLT table
+        df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
+      ## cast all decimal types to decimal(38,18)
+      ## This is to handle the case where the column is of type DecimalType(any,any) in the seed table,
+      ## cast to Decimal(38,18) in the DLT table
       if isinstance(i.dataType, DecimalType):
-        df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("decimal(38,18)"))
         print(f"Casting {i.name} from DecimalType() to Decimal(38,18) in {table['seed_table']}")
+        df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("decimal(38,18)"))
+        
       
 
     ## Reorder df_seed columns to match df_dlt columns
