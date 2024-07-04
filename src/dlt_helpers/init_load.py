@@ -88,7 +88,7 @@ def perform_initial_load(initalLoadTableList=[]):
 
 tables_to_initial_load = [
   {"seed_table":"<CATALOG>.<SCHEMA>.<TABLE NAME>",
-   "dlt_landing_folder":"/Volumes/<CATALOG>/<SCHEMA></<VOLUME>/<FOLDER>..../<TABLE NAME>/","pk_col":"<PRIMARY KEY COLUMN>"}]
+   "dlt_landing_folder":"/Volumes/<CATALOG>/<SCHEMA></<VOLUME>/<FOLDER>..../<TABLE NAME>/","pk_col":"<PRIMARY KEY COLUMN>","scd_type2"=<BOOLEAN>}]
 
 perform_initial_load(tables_to_initial_load)
 '''
