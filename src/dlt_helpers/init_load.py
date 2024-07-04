@@ -23,7 +23,14 @@ def perform_initial_load(initalLoadTableList=[]):
       if i.name.lower() not in [x.lower() for x in df_dlt.schema.fieldNames()]:
         print(f"Removing {i.name} from {table['seed_table']}")
         df_seed = df_seed.drop(i.name)
-  
+
+
+    ## Check if the table is a type 2 SCD
+    ## If it is, add Operation and ChangeVersion columns to the
+    ## seed table
+    if table['scd_type2'] == True:
+      df_seed = df_seed.withColumn("Operation",lit("I")).withColumn("ChangeVersion",0)
+    
     ## Loop through the schema of the dlt table
     for i in df_dlt.schema.fields:
 
