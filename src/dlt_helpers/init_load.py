@@ -29,7 +29,7 @@ def perform_initial_load(initalLoadTableList=[]):
     ## If it is, add Operation and ChangeVersion columns to the
     ## seed table
     if table['scd_type2'] == True:
-      df_seed = df_seed.withColumn("Operation",lit("I")).withColumn("ChangeVersion",0)
+      df_seed = df_seed.withColumn("Operation",lit("I")).withColumn("ChangeVersion",lit(0))
     
     ## Loop through the schema of the dlt table
     for i in df_dlt.schema.fields:
