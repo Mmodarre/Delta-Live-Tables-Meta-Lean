@@ -1,5 +1,7 @@
 from pyspark.sql.types import *
 from pyspark.sql.functions import lit
+## import throw
+
 
 ##  Function to perform initial load
 ##  The function takes a list of tables to perform initial load
@@ -64,7 +66,13 @@ def perform_initial_load(initalLoadTableList=[]):
 
       ## Cast all LongType, ShortType, IntegerType in seed dataset(ADF) to the respective type in .Net dataset
       if isinstance(i.dataType, LongType) or isinstance(i.dataType, ShortType) or isinstance(i.dataType, IntegerType):
-        df_seed = df_seed.withColumn(i.name, df_seed[i.name].cast(i.dataType))
+        ## check if the column in seed table of compatible type
+        ## if not, raise an exception
+        if df_seed.schema[i.name].dataType in [LongType(), ShortType(), IntegerType()]:
+          print(f"Casting {i.name} from {df_seed.schema[i.name].dataType} to {i.dataType} in {table['seed_table']}")
+          df_seed = df_seed.withColumn(i.name, df_seed[i.name].cast(i.dataType))
+        else:
+          raise Exception(f"Cannot cast {df_seed.schema[i.name].dataType} to {i.dataType}")
       
 
         
