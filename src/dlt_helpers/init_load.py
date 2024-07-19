@@ -34,13 +34,10 @@ def perform_initial_load(initalLoadTableList=[]):
     ## seed table
     if table['scd_type2'] == True:
       df_seed = df_seed.withColumn("Operation",lit("I")).withColumn("ChangeVersion",lit(0).cast(LongType()))
-    
-    
-    
-    
+
+
     ## Loop through the schema of the dlt table
     for i in df_dlt.schema.fields:
-
       ## Check if the column is not in the seed table
       ## If it is not, add it to the df_seed
       ## This is to handle the case where the column 
