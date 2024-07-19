@@ -17,6 +17,8 @@ def perform_initial_load(initalLoadTableList=[]):
     ## Read the DLT landing folder
     df_dlt = spark.read.format(data_format).load(table["dlt_landing_folder"])
     
+    
+    
     ## Loop through the schema of the seed table and check if the column is not in the DLT table
     ## If it is not, remove it from the df_seed
     for i in df_seed.schema.fields:
@@ -30,6 +32,31 @@ def perform_initial_load(initalLoadTableList=[]):
     ## seed table
     if table['scd_type2'] == True:
       df_seed = df_seed.withColumn("Operation",lit("I")).withColumn("ChangeVersion",lit(0).cast(LongType()))
+      
+    ## cast all decimal types to decimal(38,18)
+    ## This is to handle the case where the column
+    ## is of type DecimalType(any,any) in the seed table,
+    ## cast to Decimal(38,18) in the DLT table
+    if isinstance(i.dataType, DecimalType):
+      print(f"Casting {i.name} from DecimalType() to Decimal(38,18) in {table['seed_table']}")
+      df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("decimal(38,18)"))
+
+    ## cast all long types to integer
+    ## This is to handle the case where the column
+    ## is of type LongType() in the seed table and IntegerType() in the DLT table
+    if isinstance(i.dataType, LongType):
+      print(f"Casting {i.name} from LongType() to integer in {table['seed_table']}")
+      df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("integer"))
+    
+    ## cast all short types to integer
+    ## This is to handle the case where the column
+    ## is of type ShortType() in the seed table and IntegerType() in the DLT table
+    if isinstance(i.dataType, ShortType):
+      print(f"Casting {i.name} from ShortType() to integer in {table['seed_table']}")
+      df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("integer"))
+    
+    
+    
     
     ## Loop through the schema of the dlt table
     for i in df_dlt.schema.fields:
@@ -49,13 +76,7 @@ def perform_initial_load(initalLoadTableList=[]):
         print(f"Casting {i.name} from IntegerType() to BooleanType in {table['seed_table']}")
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
       
-      ## cast all decimal types to decimal(38,18)
-      ## This is to handle the case where the column
-      ## is of type DecimalType(any,any) in the seed table,
-      ## cast to Decimal(38,18) in the DLT table
-      if isinstance(i.dataType, DecimalType):
-        print(f"Casting {i.name} from DecimalType() to Decimal(38,18) in {table['seed_table']}")
-        df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("decimal(38,18)"))
+
         
       
 
