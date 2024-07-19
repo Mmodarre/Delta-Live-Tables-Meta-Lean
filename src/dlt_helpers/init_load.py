@@ -32,14 +32,6 @@ def perform_initial_load(initalLoadTableList=[]):
     ## seed table
     if table['scd_type2'] == True:
       df_seed = df_seed.withColumn("Operation",lit("I")).withColumn("ChangeVersion",lit(0).cast(LongType()))
-      
-    ## cast all decimal types to decimal(38,18)
-    ## This is to handle the case where the column
-    ## is of type DecimalType(any,any) in the seed table,
-    ## cast to Decimal(38,18) in the DLT table
-    if isinstance(i.dataType, DecimalType):
-      print(f"Casting {i.name} from DecimalType() to Decimal(38,18) in {table['seed_table']}")
-      df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("decimal(38,18)"))
 
     ## cast all long types to integer
     ## This is to handle the case where the column
@@ -75,6 +67,14 @@ def perform_initial_load(initalLoadTableList=[]):
       if isinstance(i.dataType, BooleanType):
         print(f"Casting {i.name} from IntegerType() to BooleanType in {table['seed_table']}")
         df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("boolean"))
+
+      ## cast all decimal types to decimal(38,18)
+      ## This is to handle the case where the column
+      ## is of type DecimalType(any,any) in the seed table,
+      ## cast to Decimal(38,18) in the DLT table
+      if isinstance(i.dataType, DecimalType):
+        print(f"Casting {i.name} from DecimalType() to Decimal(38,18) in {table['seed_table']}")
+        df_seed = df_seed.withColumn(i.name,df_seed[i.name].cast("decimal(38,18)"))
       
 
         
