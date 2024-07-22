@@ -56,7 +56,7 @@ class DataflowPipeline:
                 self.schema_json = None
         else:
             self.schema_json = None
-        if isinstance(dataflow_spec, SilverDataflowSpec):
+        if isinstance(dataflow_spec, SilverDataflowSpec) and not self.dataflowSpec.materializedView:
             self.silver_schema = self.get_silver_schema()
         else:
             self.silver_schema = None
@@ -77,8 +77,11 @@ class DataflowPipeline:
             )
         elif isinstance(self.dataflowSpec, SilverDataflowSpec):
             silverDataflowSpec: SilverDataflowSpec = self.dataflowSpec
+            
+
             ## If there are DQEs in Silver layer,
-            ## Create a second view for DQE operation    
+            ## Create a second view for DQE operation
+            
             if silverDataflowSpec.dataQualityExpectations:
                 data_quality_expectations_json = json.loads(silverDataflowSpec.dataQualityExpectations)
                 expect_dict = None
@@ -136,11 +139,16 @@ class DataflowPipeline:
                         dlt_view_with_expectation = dlt.expect_all_or_drop(expect_or_drop_dict)(dlt_table_with_expectation)
             ## Create a view to read data
             ## from Bronze layer OR from DQE view
-            dlt.view(
-                self.read_silver,
-                name=self.view_name,
-                comment=f"input dataset view for{self.view_name}",
-            )
+            ## If it is a materialized view
+            ## There is no need to read
+            ## and will be done using SQL in the next step
+            if not silverDataflowSpec.materializedView:    
+                
+                dlt.view(
+                    self.read_silver,
+                    name=self.view_name,
+                    comment=f"input dataset view for{self.view_name}",
+                )
         else:
             raise Exception("Dataflow read not supported for{}".format(type(self.dataflowSpec)))
 
@@ -174,7 +182,9 @@ class DataflowPipeline:
     def write_silver(self):
         """Write silver tables."""
         silver_dataflow_spec: SilverDataflowSpec = self.dataflowSpec
-        if silver_dataflow_spec.cdcApplyChanges:
+        if silver_dataflow_spec.materializedView:
+            self.create_materialized_view()
+        elif silver_dataflow_spec.cdcApplyChanges:
             self.cdc_apply_changes()
         # elif silver_dataflow_spec.dataQualityExpectations:
         #     self.write_silver_with_dqe()
@@ -204,18 +214,23 @@ class DataflowPipeline:
 
     def get_silver_schema(self):
         """Get Silver table Schema."""
+        
         silver_dataflow_spec: SilverDataflowSpec = self.dataflowSpec
         source_database = silver_dataflow_spec.sourceDetails["database"]
         source_table = silver_dataflow_spec.sourceDetails["table"]
         select_exp = silver_dataflow_spec.selectExp
         where_clause = silver_dataflow_spec.whereClause
-        raw_delta_table_stream = self.spark.readStream.table(
-            f"{source_database}.{source_table}"
-        ).selectExpr(*select_exp) if self.uc_enabled else self.spark.readStream.load(
-            path=silver_dataflow_spec.sourceDetails["path"],
-            format="delta"
-        ).selectExpr(*select_exp)
-        raw_delta_table_stream = self.__apply_where_clause(where_clause, raw_delta_table_stream)
+        mv_query = silver_dataflow_spec.materializedView
+        if silver_dataflow_spec.materializedView:
+            raw_delta_table_stream = self.spark.sql(mv_query)
+        else:
+            raw_delta_table_stream = self.spark.readStream.table(
+                f"{source_database}.{source_table}"
+            ).selectExpr(*select_exp) if self.uc_enabled else self.spark.readStream.load(
+             path=silver_dataflow_spec.sourceDetails["path"],
+                format="delta"
+            ).selectExpr(*select_exp)
+            raw_delta_table_stream = self.__apply_where_clause(where_clause, raw_delta_table_stream)
         return raw_delta_table_stream.schema
 
     def __apply_where_clause(self, where_clause, raw_delta_table_stream):
@@ -438,6 +453,20 @@ class DataflowPipeline:
             track_history_except_column_list=cdc_apply_changes.track_history_except_column_list
 
         )
+
+    def create_materialized_view(self):
+        """Create Materialized View."""
+        silver_dataflow_spec: SilverDataflowSpec = self.dataflowSpec
+        mv_query = silver_dataflow_spec.materializedView
+        @dlt.table(
+            name=f"{silver_dataflow_spec.targetDetails['table']}",
+            # table_properties=silver_dataflow_spec.tableProperties,
+            # comment=f"silver dlt table{silver_dataflow_spec.targetDetails['table']}",
+        )
+        def create_mv():
+            return self.spark.sql(mv_query)
+
+    
 
     def run_dlt(self):
         """Run DLT."""

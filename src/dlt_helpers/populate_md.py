@@ -181,7 +181,7 @@ WHEN NOT MATCHED
 ## @return None
 ##
 
-def populate_silver(SILVER_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,readerConfigOptions,targetFormat,targetDetails,tableProperties,selectExp,whereClause,partitionColumns,cdcApplyChanges,dataQualityExpectations,createDate,createdBy,updateDate,updatedBy,spark):
+def populate_silver(SILVER_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,readerConfigOptions,targetFormat,targetDetails,tableProperties,selectExp,whereClause,partitionColumns,cdcApplyChanges,materializedView,dataQualityExpectations,createDate,createdBy,updateDate,updatedBy,spark):
 
   schema_definition = StructType(
         [
@@ -197,6 +197,7 @@ def populate_silver(SILVER_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,source
             StructField("whereClause", ArrayType(StringType(), True), True),
             StructField("partitionColumns", ArrayType(StringType(), True), True),
             StructField("cdcApplyChanges", StringType(), True),
+            StructField("materializedView", StringType(), True),
             StructField("dataQualityExpectations", StringType(), True),
             StructField("createDate", TimestampType(), True), ## NEED TO REMOVE
             StructField("createdBy", StringType(), True), ## NEED TO REMOVE
@@ -206,7 +207,7 @@ def populate_silver(SILVER_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,source
     )
   
   data = [(dataFlowId, dataFlowGroup, sourceFormat, sourceDetails, readerConfigOptions, targetFormat, targetDetails, tableProperties,
-         selectExp,whereClause,partitionColumns, cdcApplyChanges, dataQualityExpectations
+         selectExp,whereClause,partitionColumns, cdcApplyChanges,materializedView, dataQualityExpectations
          ,createDate, createdBy,updateDate, updatedBy)]
   ## Create a dataframe from the data
   silver_new_record_df = spark.createDataFrame(data, schema_definition)
@@ -231,6 +232,7 @@ md5(CONCAT(
   coalesce(CAST(silver_md.whereClause AS STRING),""),
   coalesce(CAST(silver_md.partitionColumns AS STRING),""),
   coalesce(CAST(silver_md.cdcApplyChanges AS STRING),""),
+  coalesce(CAST(silver_md.materializedView AS STRING),""),
   coalesce(CAST(silver_md.dataQualityExpectations AS STRING),"")
 )) != updates.hash THEN
   UPDATE SET
@@ -246,6 +248,7 @@ md5(CONCAT(
     whereClause = updates.whereClause,
     partitionColumns = updates.partitionColumns,
     cdcApplyChanges = updates.cdcApplyChanges,
+    materializedView = updates.materializedView,
     dataQualityExpectations = updates.dataQualityExpectations,
     version = CONCAT('v',CAST(CAST(substr(silver_md.version, 2) AS INTEGER)+1 AS STRING)),
     createDate = silver_md.createDate,
@@ -266,6 +269,7 @@ WHEN NOT MATCHED
     whereClause,
     partitionColumns,
     cdcApplyChanges,
+    materializedView,
     dataQualityExpectations,
     version,
     createDate,
@@ -286,6 +290,7 @@ WHEN NOT MATCHED
     updates.whereClause,
     updates.partitionColumns,
     updates.cdcApplyChanges,
+    updates.materializedView,
     updates.dataQualityExpectations,
     'v1',
     updates.createDate,
