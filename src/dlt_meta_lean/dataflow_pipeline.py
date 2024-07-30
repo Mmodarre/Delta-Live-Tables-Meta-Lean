@@ -3,8 +3,9 @@ import json
 import logging
 import dlt
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import expr
+from pyspark.sql.functions import expr, col
 from pyspark.sql.types import StructType, StructField
+import inspect
 
 from dlt_meta_lean.dataflow_spec import BronzeDataflowSpec, SilverDataflowSpec, DataflowSpecUtils
 from dlt_meta_lean.pipeline_readers import PipelineReaders
@@ -441,7 +442,7 @@ class DataflowPipeline:
             target=f"{self.dataflowSpec.targetDetails['table']}",
             source=self.view_name,
             keys=cdc_apply_changes.keys,
-            sequence_by=cdc_apply_changes.sequence_by,
+            sequence_by=col(cdc_apply_changes.sequence_by),
             where=cdc_apply_changes.where,
             ignore_null_updates=cdc_apply_changes.ignore_null_updates,
             apply_as_deletes=apply_as_deletes,
@@ -477,6 +478,7 @@ class DataflowPipeline:
     @staticmethod
     def invoke_dlt_pipeline(spark, layer):
         """Invoke dlt pipeline will launch dlt with given dataflowspec.
+        
 
         Args:
             spark (_type_): _description_
@@ -509,3 +511,4 @@ class DataflowPipeline:
             )
 
             dlt_data_flow.run_dlt()
+    
