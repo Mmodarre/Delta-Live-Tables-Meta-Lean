@@ -460,9 +460,10 @@ class DataflowPipeline:
         silver_dataflow_spec: SilverDataflowSpec = self.dataflowSpec
         mv_query = silver_dataflow_spec.materializedView
         @dlt.table(
+            spark_conf={"pipelines.trigger.interval" : "60 seconds"},
             name=f"{silver_dataflow_spec.targetDetails['table']}",
-            # table_properties=silver_dataflow_spec.tableProperties,
-            # comment=f"silver dlt table{silver_dataflow_spec.targetDetails['table']}",
+            table_properties=silver_dataflow_spec.tableProperties,
+            comment=f"silver dlt Materialized View {silver_dataflow_spec.targetDetails['table']} - 60 seconds refresh",
         )
         def create_mv():
             return self.spark.sql(mv_query)
