@@ -1,4 +1,7 @@
 # Databricks notebook source
+dbutils.widgets.text('env',defaultValue='')
+
+# COMMAND ----------
 dbutils.widgets.text('catalog',defaultValue='')
 
 # COMMAND ----------
@@ -7,6 +10,9 @@ dbutils.widgets.text('schema',defaultValue='_meta')
 # COMMAND ----------
 
 catalog =dbutils.widgets.get("catalog")
+# COMMAND ----------
+
+env =dbutils.widgets.get("env")
 # COMMAND ----------
 
 schema = dbutils.widgets.get("schema")
@@ -18,7 +24,7 @@ spark.sql(
 
 
 
-spark.sql(f"CREATE TABLE IF NOT EXISTS {catalog}.{schema}.bronze_dataflowspec_table ( \
+spark.sql(f"CREATE TABLE IF NOT EXISTS {catalog}{env}.{schema}.bronze_dataflowspec_table ( \
     dataFlowId STRING, \
     dataFlowGroup STRING, \
     sourceFormat STRING, \
@@ -46,7 +52,7 @@ spark.sql(f"CREATE TABLE IF NOT EXISTS {catalog}.{schema}.bronze_dataflowspec_ta
 
 # COMMAND ----------
 
-spark.sql(f'CREATE TABLE IF NOT EXISTS {catalog}.{schema}.silver_dataflowspec_table ( \
+spark.sql(f'CREATE TABLE IF NOT EXISTS {catalog}{env}.{schema}.silver_dataflowspec_table ( \
     dataFlowId STRING, \
     dataFlowGroup STRING, \
     sourceFormat STRING, \
