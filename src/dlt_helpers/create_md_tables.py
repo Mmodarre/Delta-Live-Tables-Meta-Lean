@@ -1,14 +1,24 @@
 # Databricks notebook source
-dbutils.widgets.text('env',defaultValue='')
+dbutils.widgets.text('catalog',defaultValue='')
 
 # COMMAND ----------
 
-spark.sql('CREATE SCHEMA IF NOT EXISTS mehdidatalake_catalog'+dbutils.widgets.get('env')+'._meta')
+dbutils.widgets.text('schema',defaultValue='_meta')
+# COMMAND ----------
+
+catalog =dbutils.widgets.get("catalog")
+# COMMAND ----------
+
+schema = dbutils.widgets.get("schema")
+# COMMAND ----------
+spark.sql(
+    f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
 
 # COMMAND ----------
 
 
-spark.sql('CREATE TABLE IF NOT EXISTS mehdidatalake_catalog'+dbutils.widgets.get('env')+'._meta.bronze_dataflowspec_table ( \
+
+spark.sql(f"CREATE TABLE IF NOT EXISTS {catalog}.{schema}.bronze_dataflowspec_table ( \
     dataFlowId STRING, \
     dataFlowGroup STRING, \
     sourceFormat STRING, \
@@ -28,11 +38,15 @@ spark.sql('CREATE TABLE IF NOT EXISTS mehdidatalake_catalog'+dbutils.widgets.get
     createDate TIMESTAMP,\
     createdBy STRING,\
     updateDate TIMESTAMP,\
-    updatedBy STRING)'
+    updatedBy STRING)"
     )
 
 
-spark.sql('CREATE TABLE IF NOT EXISTS mehdidatalake_catalog'+dbutils.widgets.get('env')+'._meta.silver_dataflowspec_table ( \
+
+
+# COMMAND ----------
+
+spark.sql(f'CREATE TABLE IF NOT EXISTS {catalog}.{schema}.silver_dataflowspec_table ( \
     dataFlowId STRING, \
     dataFlowGroup STRING, \
     sourceFormat STRING, \

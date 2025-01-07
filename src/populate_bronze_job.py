@@ -3,15 +3,32 @@ dbutils.widgets.text('env',defaultValue='')
 
 # COMMAND ----------
 
+dbutils.widgets.text('catalog',defaultValue='')
+
+# COMMAND ----------
+
+dbutils.widgets.text('schema',defaultValue='_meta')
+# COMMAND ----------
+
+catalog =dbutils.widgets.get("catalog")
+# COMMAND ----------
+
+env =dbutils.widgets.get("env")
+# COMMAND ----------
+
+schema = dbutils.widgets.get("schema")
+# COMMAND ----------
+
 from dlt_helpers.populate_md import populate_bronze
 import datetime
 from pyspark.sql.functions import current_user
 
 # COMMAND ----------
+
 dataFlowId = '100-Customers'
 dataFlowGroup = "B1"
 sourceFormat = "cloudFiles"
-sourceDetails = {"path":"/Volumes/mehdidatalake_catalog"+dbutils.widgets.get("env")+"/retail_cdc/retail_landing/cdc_raw/customers","source_database":"customers","source_table":"customers"}
+sourceDetails = {"path":f"/Volumes/mehdidatalake_catalog"+dbutils.widgets.get("env")+"/retail_cdc/retail_landing/cdc_raw/customers","source_database":"customers","source_table":"customers"}
 readerConfigOptions ={
         "cloudFiles.format": "json",
         "cloudFiles.rescuedDataColumn": "_rescued_data",
@@ -41,7 +58,7 @@ createDate = datetime.datetime.now()
 updateDate = datetime.datetime.now()
 createdBy = spark.range(1).select(current_user()).head()[0]
 updatedBy = spark.range(1).select(current_user()).head()[0]
-BRONZE_MD_TABLE = "mehdidatalake_catalog"+ dbutils.widgets.get('env')+"._meta.bronze_dataflowspec_table" # type: ignore
+BRONZE_MD_TABLE = f"{catalog}{env}.{schema}.bronze_dataflowspec_table" # type: ignore
 
 
 
