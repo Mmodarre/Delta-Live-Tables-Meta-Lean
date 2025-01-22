@@ -35,7 +35,7 @@ class PipelineReaders:
         ## If the cloudFiles.useNotifications is set to True, then read the secrets from the KeyVault
         ## and set the secrets to the reader_config_options
         ## Also remove the extra configs from the reader_config_options
-        if "cloudFiles.useNotifications" in reader_config_options and reader_config_options["cloudFiles.useNotifications"]:
+        if "cloudFiles.useNotifications" in reader_config_options and reader_config_options["cloudFiles.useNotifications"] == "true":
             dbutils = PipelineReaders.get_db_utils(spark)
             cloudFileNotificationsConfig = bronze_dataflow_spec.cloudFileNotificationsConfig
 
