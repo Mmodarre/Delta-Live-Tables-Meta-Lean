@@ -65,6 +65,7 @@ spark.sql(f'CREATE TABLE IF NOT EXISTS {catalog}{env}.{schema}.silver_dataflowsp
     whereClause ARRAY < STRING >, \
     partitionColumns ARRAY < STRING >, \
     cdcApplyChanges STRING, \
+    materializedView STRING, \
     dataQualityExpectations STRING, \
     version STRING, \
     createDate TIMESTAMP, \
