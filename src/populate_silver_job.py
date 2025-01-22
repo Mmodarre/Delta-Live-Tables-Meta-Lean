@@ -3,6 +3,23 @@ dbutils.widgets.text('env',defaultValue='')
 
 # COMMAND ----------
 
+dbutils.widgets.text('catalog',defaultValue='')
+
+# COMMAND ----------
+
+dbutils.widgets.text('schema',defaultValue='_meta')
+# COMMAND ----------
+
+catalog =dbutils.widgets.get("catalog")
+# COMMAND ----------
+
+env =dbutils.widgets.get("env")
+# COMMAND ----------
+
+db = dbutils.widgets.get("schema")
+
+# COMMAND ----------
+
 from dlt_helpers.populate_md import populate_silver
 import datetime
 from pyspark.sql.functions import current_user
@@ -29,7 +46,7 @@ createDate = datetime.datetime.now()
 updateDate = datetime.datetime.now()
 createdBy = spark.range(1).select(current_user()).head()[0]
 updatedBy = spark.range(1).select(current_user()).head()[0]
-SILVER_MD_TABLE = "mehdidatalake_catalog"+ dbutils.widgets.get('env')+"._meta.silver_dataflowspec_table" # type: ignore
+SILVER_MD_TABLE = BRONZE_MD_TABLE = f"{catalog}{env}.{db}.silver_dataflowspec_table" # type: ignore
 
 
 populate_silver(SILVER_MD_TABLE,dataFlowId, dataFlowGroup, sourceFormat, sourceDetails, readerConfigOptions, targetFormat, targetDetails, tableProperties,selectExp,whereClause,partitionColumns, cdcApplyChanges, dataQualityExpectations,createDate, createdBy,updateDate, updatedBy,spark)

@@ -9,6 +9,8 @@ include:
 variables:
   env:
     default: None
+  catalog:
+      default: None
 
 targets:
   # The 'dev' target, for development purposes. This target is the default.
@@ -22,7 +24,8 @@ targets:
     workspace:
       host: https://adb-984752964297111.11.azuredatabricks.net
     variables:
-      env: "_dev"
+      env: ''
+      catalog: "mehdidatalake_catalog"
     
 
   ## Optionally, there could be a 'staging' target here.
@@ -39,6 +42,7 @@ targets:
     mode: production
     variables:
       env: ''
+      catalog: "mehdidatalake_catalog"
     workspace:
       host: https://adb-984752964297111.11.azuredatabricks.net
       # We always use /Users/mehdi.modarressi@databricks.com for all resources to make sure we only have a single copy.

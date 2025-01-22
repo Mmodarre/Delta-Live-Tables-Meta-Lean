@@ -2,10 +2,10 @@ resources:
   pipelines:
     dlt_meta_bronze:
       name: dlt_meta_bronze
-      clusters:
-        - label: default
-          num_workers: 1
-          node_type_id: Standard_D4s_v5
+      # clusters:
+      #   - label: default
+      #     num_workers: 1
+      #     node_type_id: Standard_D4s_v5
       configuration:
         "bronze.dataflowspecTable": "mehdidatalake_catalog${var.env}._meta.bronze_dataflowspec_table"
         "layer": "bronze"
@@ -17,3 +17,4 @@ resources:
       channel: CURRENT
       target: retail_cdc
       catalog: mehdidatalake_catalog${var.env}
+      serverless: true

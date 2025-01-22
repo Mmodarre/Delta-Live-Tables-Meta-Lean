@@ -16,7 +16,7 @@ catalog =dbutils.widgets.get("catalog")
 env =dbutils.widgets.get("env")
 # COMMAND ----------
 
-schema = dbutils.widgets.get("schema")
+db = dbutils.widgets.get("schema")
 # COMMAND ----------
 
 from dlt_helpers.populate_md import populate_bronze
@@ -58,7 +58,7 @@ createDate = datetime.datetime.now()
 updateDate = datetime.datetime.now()
 createdBy = spark.range(1).select(current_user()).head()[0]
 updatedBy = spark.range(1).select(current_user()).head()[0]
-BRONZE_MD_TABLE = f"{catalog}{env}.{schema}.bronze_dataflowspec_table" # type: ignore
+BRONZE_MD_TABLE = f"{catalog}{env}.{db}.bronze_dataflowspec_table" # type: ignore
 
 
 
