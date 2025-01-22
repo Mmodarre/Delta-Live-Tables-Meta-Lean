@@ -5,10 +5,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, lit, row_number
-from pyspark.sql.session import SparkSession
-from pyspark.sql.window import Window
+from pyspark.sql import DataFrame # pylint: disable=import-error
+from pyspark.sql.functions import col, lit, row_number  # pylint: disable=import-error
+from pyspark.sql.session import SparkSession # pylint: disable=import-error
+from pyspark.sql.window import Window   # pylint: disable=import-error
 
 logger = logging.getLogger("dlt-meta")
 logger.setLevel(logging.INFO)
@@ -157,7 +157,7 @@ class DataflowSpecUtils:
         bronze_dataflow_spec_list: list[BronzeDataflowSpec] = []
         for row in dataflow_spec_rows:
             bronze_dataflow_spec_list.append(BronzeDataflowSpec(**row.asDict()))
-        logger.info(f"bronze_dataflow_spec_list={bronze_dataflow_spec_list}")
+        logger.info("bronze_dataflow_spec_list=%s", bronze_dataflow_spec_list)
         return bronze_dataflow_spec_list
 
     @staticmethod

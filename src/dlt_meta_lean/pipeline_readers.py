@@ -1,9 +1,10 @@
 """PipelineReaders providers DLT readers functionality."""
 import logging
-from pyspark.sql import DataFrame
-from pyspark.sql.types import StructType
-from pyspark.sql.functions import from_json, col, current_timestamp
 import json
+from pyspark.sql import DataFrame # pylint: disable=import-error # type: ignore
+from pyspark.sql.types import StructType # pylint: disable=import-error # type: ignore
+from pyspark.sql.functions import from_json, col, current_timestamp # pylint: disable=import-error # type: ignore
+
 
 logger = logging.getLogger('databricks.labs.dltmeta')
 logger.setLevel(logging.INFO)
@@ -108,7 +109,7 @@ class PipelineReaders:
     @staticmethod
     def get_db_utils(spark):
         """Get databricks utils using DBUtils package."""
-        from pyspark.dbutils import DBUtils
+        from pyspark.dbutils import DBUtils # pylint: disable=import-error disable=import-outside-toplevel # type: ignore
         return DBUtils(spark)
 
     @staticmethod
@@ -131,7 +132,7 @@ class PipelineReaders:
             spark
             .readStream
             .format("kafka")
-            .options(**kafka_options)
+            .options(**kafka_options) # pylint: disable=possibly-used-before-assignment
             .load()
             # add date, hour, and minute columns derived from eventhub enqueued timestamp
             .selectExpr("*", "to_date(timestamp) as date", "hour(timestamp) as hour", "minute(timestamp) as minute")
@@ -203,7 +204,7 @@ class PipelineReaders:
                           "kafka.ssl.keystore.secrets.scope",
                           "kafka.ssl.keystore.secrets.key"
                           ]
-                raise Exception(f"Kafka ssl required params are: {params}! provided options are :{source_details_map}")
+                raise ValueError(f"Kafka ssl required params are: {params}! provided options are :{source_details_map}")
         else:
             kafka_options = {**kafka_base_ops, **bronze_dataflow_spec.readerConfigOptions}
         return kafka_options
