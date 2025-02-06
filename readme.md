@@ -46,6 +46,48 @@ Manages data transformations with settings for:
 - Data quality checks
 - CDC operations
 - View materialization
+  - Supports materialized views across catalogs/schemas
+  - Auto-refreshes every 60 seconds
+  - Uses standard SQL syntax
+  - For details, see Databricks documentation on [Materialized Views in DLT](https://docs.databricks.com/en/delta-live-tables/index.html#materialized-view) and [Create a Delta Live Tables materialized view](https://docs.databricks.com/en/delta-live-tables/python-ref.html#create-a-delta-live-tables-materialized-view-or-streaming-table)
+
+Benefits of DLT Materialized Views:
+
+- Automatic incremental updates
+- Consistent cross-catalog reporting
+- Reduced query latency
+- Cost-effective computation (only processes changes)
+- Built-in recovery and fault tolerance
+
+Example materialized view configuration:
+
+```python
+config = {
+    "dataFlowId": "product_summary",
+    "dataFlowGroup": "REPORTS",
+    "materializedView": """
+        SELECT 
+            c.category_name,
+            p.brand,
+            COUNT(*) as product_count,
+            AVG(p.price) as avg_price,
+            SUM(i.quantity) as total_inventory
+        FROM catalog1.products.product_details p
+        JOIN catalog2.categories.category_lookup c ON p.category_id = c.id
+        LEFT JOIN catalog3.inventory.stock i ON p.product_id = i.product_id
+        GROUP BY c.category_name, p.brand
+    """,
+    "targetFormat": "delta",
+    "targetDetails": {
+        "database": "reporting_catalog.summaries",
+        "table": "product_category_summary"
+    },
+    "tableProperties": {
+        "delta.autoOptimize.optimizeWrite": "true",
+        "delta.autoOptimize.autoCompact": "true"
+    }
+}
+```
 
 ## Code Architecture
 
@@ -206,6 +248,7 @@ materializedView STRING
 The framework supports various data quality checks through the `dataQualityExpectations` field in metadata. For detailed information about DLT expectations, see [Databricks Data Quality with Delta Live Tables](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-expectations.html).
 
 #### Basic Expectations
+
 ```python
 config = {
     "dataQualityExpectations": {
@@ -222,6 +265,7 @@ config = {
 ```
 
 #### Composite Quality Rules
+
 ```python
 config = {
     "dataQualityExpectations": {
@@ -242,6 +286,7 @@ config = {
 ```
 
 #### Row-Level Quality Metrics
+
 ```python
 config = {
     "dataQualityExpectations": {
@@ -259,6 +304,7 @@ config = {
 ```
 
 Key Features:
+
 - Three enforcement levels:
   - `expect_or_fail`: Fails pipeline on violation
   - `expect_or_drop`: Drops invalid records
@@ -269,6 +315,7 @@ Key Features:
 ### Cloud Files Notification Support
 
 Prerequisites:
+
 - Azure Key Vault setup for storing credentials
 - Service Principal with required permissions
 - Storage notification configuration
@@ -290,6 +337,7 @@ cloudFileNotificationsConfig:
 ```
 
 Example Bronze metadata configuration with notifications:
+
 ```python
 config = {
     "dataFlowId": "sales_data",
@@ -313,6 +361,7 @@ config = {
 ```
 
 Key Features:
+
 - Automatic detection of new files
 - Configurable batch processing
 - Cloud provider-specific optimizations
@@ -322,11 +371,13 @@ Key Features:
 ### SCD (Slowly Changing Dimension) Support
 
 The framework supports different SCD types through the `cdcApplyChanges` configuration in both Bronze and Silver metadata. For implementation details, see:
+
 - [Change Data Capture with Delta Live Tables](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-cdc.html)
 - [Apply Changes Into Delta Lake](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-cdc.html#apply-changes-into-delta-lake)
 - [CDC with Auto Loader](https://docs.databricks.com/ingestion/auto-loader/cdc.html)
 
 #### SCD Type 1 (Overwrite)
+
 ```python
 config = {
     "dataFlowId": "customer_dimension",
@@ -339,6 +390,7 @@ config = {
 ```
 
 #### SCD Type 2 (History Tracking)
+
 ```python
 config = {
     "dataFlowId": "customer_dimension",
@@ -359,6 +411,7 @@ config = {
 ```
 
 Key SCD Type 2 Configuration Options:
+
 - `scdType`: Set to "2" for historical tracking
 - `keys`: Business key columns for record identification
 - `sequence_by`: Column used for ordering changes
@@ -367,6 +420,7 @@ Key SCD Type 2 Configuration Options:
 - `except_column_list`: Columns to exclude from change detection
 
 #### CDC with Auto Loader
+
 ```python
 config = {
     "dataFlowId": "sales_transactions",
@@ -392,6 +446,7 @@ config = {
 ```
 
 Key Configuration Fields:
+
 - `scdType`: Type of SCD implementation (1 or 2)
 - `keyColumns`: Business key columns for identifying records
 - `sequenceBy`: Column used for ordering changes
@@ -405,6 +460,7 @@ Key Configuration Fields:
 The framework supports multiple source formats as well as `cloudFiles` through the `sourceFormat` configuration:
 
 #### Delta Tables
+
 ```python
 config = {
     "dataFlowId": "customers",
@@ -419,7 +475,9 @@ config = {
     }
 }
 ```
+
 #### JDBC Sources
+
 ```python
 config = {
     "dataFlowId": "oracle_products",
@@ -441,6 +499,7 @@ config = {
 ```
 
 #### Kafka Streams
+
 ```python
 config = {
     "dataFlowId": "kafka_orders",
@@ -458,6 +517,7 @@ config = {
 ```
 
 #### Azure Event Hubs
+
 ```python
 config = {
     "dataFlowId": "eventhub_telemetry",
@@ -478,6 +538,7 @@ config = {
 ```
 
 Key Configuration Points:
+
 - Each source type has specific required parameters
 - Credentials should use Databricks secrets
 - Streaming sources support checkpointing
@@ -487,9 +548,11 @@ Key Configuration Points:
 ### Current Feature Support and Limitations
 
 #### Schema Management
+
 - The framework requires separate schemas for Bronze and Silver layers
 - Each pipeline operates within its own schema namespace
 - Schema layout example:
+
   ```
   catalog_name
   ├── bronze_schema
@@ -499,9 +562,11 @@ Key Configuration Points:
       ├── transformed_table1
       └── transformed_table2
   ```
+
 - Cross-schema references must be fully qualified
 
 #### DLT Features Support
+
 - ✅ Single Catalog and Schema per pipeline
 - ✅ Unity Catalog Integration
 - ✅ Expectations and Quality Metrics
