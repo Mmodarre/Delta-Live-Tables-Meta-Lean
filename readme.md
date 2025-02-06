@@ -4,9 +4,9 @@
 
 A metadata-driven framework for building [Delta Live Tables (DLT)](https://docs.databricks.com/en/delta-live-tables/index.html) pipelines in Databricks. The framework provides a configurable way to manage data ingestion and transformation pipelines through metadata tables rather than hard-coded pipeline logic.
 
-![alt text](image.png)
-![alt text](image-3.png)
-![alt text](image-2.png)
+![alt text](assets/image.png)
+![alt text](assets/image-3.png)
+![alt text](assets/image-2.png)
 ### Benefits
 
 - Reduced pipeline code duplication
