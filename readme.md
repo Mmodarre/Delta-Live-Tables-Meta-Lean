@@ -376,9 +376,10 @@ Key Features:
 
 The framework supports different SCD types through the `cdcApplyChanges` configuration in both Bronze and Silver metadata. For implementation details, see:
 
-- [Change Data Capture with Delta Live Tables](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-cdc.html)
-- [Apply Changes Into Delta Lake](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-cdc.html#apply-changes-into-delta-lake)
+- [Change Data Capture with Delta Live Tables](https://docs.databricks.com/delta-live-tables/cdc.html)
+- [Apply Changes Into Delta Lake](https://docs.databricks.com/delta-live-tables/cdc.html#apply-changes-into-delta-lake)
 - [CDC with Auto Loader](https://docs.databricks.com/ingestion/auto-loader/cdc.html)
+
 
 #### SCD Type 1 (Overwrite)
 
@@ -393,8 +394,8 @@ config = {
     "dataFlowId": "customer_dimension",
     "cdcApplyChanges": {
         "scdType": "1",
-        "keyColumns": ["customer_id"],  # Records with same key are deduplicated
-        "sequenceBy": "update_timestamp"  # Latest record wins
+        "keys": ["customer_id"],          # Records with same key are deduplicated
+        "sequence_by": "update_timestamp"   # Latest record wins
     }
 }
 ```
