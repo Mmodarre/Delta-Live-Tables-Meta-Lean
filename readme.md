@@ -166,6 +166,10 @@ class SilverPipeline:
 
 ## Implementation
 
+### Example Metadata Population Scripts
+
+The framework includes example scripts for populating metadata tables located in the `examples_populate` directory.
+
 ### Metadata Schema
 
 ```sql
@@ -215,12 +219,6 @@ config = {
         "expect_or_drop": {                         # Drop invalid records
             "valid_amount": "amount > 0",
             "valid_category": "category IN ('A','B','C')"
-        },
-        "expect_or_quarantine": {                   # Move to quarantine table
-            "complex_check": """
-                (status = 'COMPLETED' AND amount > 0) OR 
-                (status = 'PENDING' AND amount IS NULL)
-            """
         }
     }
 }
@@ -273,6 +271,13 @@ Key Features:
 - Quarantine table management
 
 ### Cloud Files Notification Support
+
+Prerequisites:
+- Azure Key Vault setup for storing credentials
+- Service Principal with required permissions
+- Storage notification configuration
+
+For detailed setup instructions, see [File Notification Mode Setup](https://learn.microsoft.com/en-us/azure/databricks/ingestion/cloud-object-storage/auto-loader/file-notification-mode).
 
 The framework supports automated ingestion using cloud storage notifications through the `cloudFileNotificationsConfig` option in Bronze metadata. For more details, see [Auto Loader](https://docs.databricks.com/ingestion/auto-loader/index.html) and [Cloud Files Configuration](https://docs.databricks.com/ingestion/auto-loader/options.html).
 
