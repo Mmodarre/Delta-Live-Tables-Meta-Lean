@@ -436,42 +436,6 @@ Key SCD Type 2 Configuration Options:
 - `track_history_except_column_list`: Columns to exclude from version history
 - `except_column_list`: Columns to exclude from change detection
 
-#### CDC with Auto Loader
-
-```python
-config = {
-    "dataFlowId": "sales_transactions",
-    "sourceFormat": "cloudFiles",
-    "sourceDetails": {
-        "path": "Volumes/data/sales",
-        "format": "json",
-        "schemaLocation": "Volumes/schema/sales"
-    },
-    "cdcApplyChanges": {
-        "scdType": "1",
-        "keyColumns": ["transaction_id"],
-        "sequenceBy": "transaction_timestamp",
-        "applyChanges": {
-            "CDC": {
-                "identifyDeletedRows": "false",
-                "ignoreChanges": "false",
-                "columnsToCopy": ["*"]
-            }
-        }
-    }
-}
-```
-
-Key Configuration Fields:
-
-- `scdType`: Type of SCD implementation (1 or 2)
-- `keyColumns`: Business key columns for identifying records
-- `sequenceBy`: Column used for ordering changes
-- `startDateColumn`: Start of validity period (Type 2)
-- `endDateColumn`: End of validity period (Type 2)
-- `currentFlag`: Indicates current version (Type 2)
-- `applyChanges`: CDC-specific configurations
-
 ### Supported Source Types
 
 The framework supports multiple source formats as well as `cloudFiles` through the `sourceFormat` configuration:
