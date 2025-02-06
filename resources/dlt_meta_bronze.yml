@@ -14,7 +14,8 @@ resources:
       libraries:
         - notebook:
             path: ../src/init_dlt_meta_pipeline.py
-      channel: CURRENT
-      target: retail_cdc
+      channel: PREVIEW
+      
       catalog: mehdidatalake_catalog${var.env}
+      schema: retail_cdc
       serverless: true

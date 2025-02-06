@@ -2,6 +2,9 @@
 dbutils.widgets.text('env',defaultValue='')
 
 # COMMAND ----------
+%pip install -e /dbfs/FileStore/Mehdi_Modarressi/dlt_helpers-0.1-py3-none-any.whl
+
+# COMMAND ----------
 
 dbutils.widgets.text('catalog',defaultValue='')
 
@@ -34,7 +37,7 @@ readerConfigOptions ={
         "cloudFiles.rescuedDataColumn": "_rescued_data",
         "cloudFiles.inferColumnTypes": "true",
         "cloudFile.readerCaseSensitive": "false",
-        "cloudFiles.useNotifications": "true"
+        "cloudFiles.useNotifications": "false"
     }
 cloudFileNotificationsConfig = {
         "cloudFiles.subscriptionId": "az_subscription_id",
