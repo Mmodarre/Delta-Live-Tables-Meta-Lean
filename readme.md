@@ -1,4 +1,4 @@
-# DLT Meta Framework Documentation
+# DLT Meta Lean Framework Documentation
 
 ## Overview
 
@@ -398,6 +398,90 @@ Key Configuration Fields:
 - `endDateColumn`: End of validity period (Type 2)
 - `currentFlag`: Indicates current version (Type 2)
 - `applyChanges`: CDC-specific configurations
+
+### Supported Source Types
+
+The framework supports multiple source formats as well as `cloudFiles` through the `sourceFormat` configuration:
+
+#### Delta Tables
+```python
+config = {
+    "dataFlowId": "customers",
+    "sourceFormat": "delta",
+    "sourceDetails": {
+        "database": "retail_catalog.bronze",
+        "table": "customers"
+    },
+    "readerConfigOptions": {
+        "readChangeFeed": "true",
+        "startingVersion": "latest"
+    }
+}
+```
+#### JDBC Sources
+```python
+config = {
+    "dataFlowId": "oracle_products",
+    "sourceFormat": "jdbc",
+    "sourceDetails": {
+        "url": "jdbc:oracle:thin:@//host:port/service",
+        "dbtable": "PRODUCTS",
+        "user": "${secrets/scope/username}",
+        "password": "${secrets/scope/password}"
+    },
+    "readerConfigOptions": {
+        "fetchsize": "10000",
+        "numPartitions": "4",
+        "partitionColumn": "PRODUCT_ID",
+        "lowerBound": "0",
+        "upperBound": "1000000"
+    }
+}
+```
+
+#### Kafka Streams
+```python
+config = {
+    "dataFlowId": "kafka_orders",
+    "sourceFormat": "kafka",
+    "sourceDetails": {
+        "kafka.bootstrap.servers": "host:9092",
+        "subscribe": "orders_topic",
+        "startingOffsets": "latest"
+    },
+    "readerConfigOptions": {
+        "failOnDataLoss": "false",
+        "maxOffsetsPerTrigger": "10000"
+    }
+}
+```
+
+#### Azure Event Hubs
+```python
+config = {
+    "dataFlowId": "eventhub_telemetry",
+    "sourceFormat": "eventhubs",
+    "sourceDetails": {
+        "eventHubName": "telemetry",
+        "connectionString": "${secrets/scope/eventhub_connection}"
+    },
+    "readerConfigOptions": {
+        "maxEventsPerTrigger": "5000",
+        "startingPosition": {
+            "offset": "-1",
+            "seqNo": -1,
+            "enqueuedTime": "2023-01-01T00:00:00.000Z"
+        }
+    }
+}
+```
+
+Key Configuration Points:
+- Each source type has specific required parameters
+- Credentials should use Databricks secrets
+- Streaming sources support checkpointing
+- Connection parameters can be environment-specific
+- Reader options control performance and behavior
 
 ### Current Feature Support and Limitations
 
