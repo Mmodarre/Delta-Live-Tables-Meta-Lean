@@ -7,6 +7,7 @@ A metadata-driven framework for building [Delta Live Tables (DLT)](https://docs.
 ![alt text](assets/image.png)
 ![alt text](assets/image-3.png)
 ![alt text](assets/image-2.png)
+
 ### Benefits
 
 - Reduced pipeline code duplication
@@ -381,16 +382,29 @@ The framework supports different SCD types through the `cdcApplyChanges` configu
 
 #### SCD Type 1 (Overwrite)
 
+Useful for:
+
+- Simple dimension updates
+- Deduplication of source records (automatically handles duplicates by keeping latest version)
+- Systems that send multiple records with same key but different timestamps
+
 ```python
 config = {
     "dataFlowId": "customer_dimension",
     "cdcApplyChanges": {
         "scdType": "1",
-        "keyColumns": ["customer_id"],
-        "sequenceBy": "update_timestamp"
+        "keyColumns": ["customer_id"],  # Records with same key are deduplicated
+        "sequenceBy": "update_timestamp"  # Latest record wins
     }
 }
 ```
+
+Note: When source systems send duplicate records (same business key but different timestamps),
+SCD Type 1 configuration automatically handles deduplication by:
+
+- Identifying records with the same key columns
+- Using the `sequenceBy` column to determine the latest version
+- Only keeping the most recent record in the target table
 
 #### SCD Type 2 (History Tracking)
 
