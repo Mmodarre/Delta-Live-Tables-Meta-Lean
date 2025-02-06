@@ -16,6 +16,7 @@ A metadata-driven framework for building Delta Live Tables (DLT) pipelines in Da
 - Databricks Runtime
 - Delta Live Tables
 - PySpark
+- Databricks Asset Bunddles (Optional for deployment)
 
 ## Architecture
 
@@ -35,7 +36,6 @@ Handles raw data ingestion with configurations for:
 - Reader options
 - Data quality rules
 - CDC settings
-- Quarantine handling
 
 #### Silver Layer (Transformations)
 
@@ -152,7 +152,6 @@ def populate_silver_metadata():
 class BronzePipeline:
     # Handles ingestion workflows
     # Applies quality rules
-    # Manages quarantine process
 ```
 
 #### silver_pipeline.py
@@ -194,9 +193,7 @@ updatedBy STRING                     -- Last updater
 -- Layer-specific fields
 -- Bronze
 cloudFileNotificationsConfig MAP<STRING,STRING>,
-schema STRING,
-quarantineTargetDetails MAP<STRING,STRING>,
-quarantineTableProperties MAP<STRING,STRING>
+schema STRING
 
 -- Silver
 selectExp ARRAY<STRING>,
@@ -228,7 +225,7 @@ config = {
 ```python
 config = {
     "dataQualityExpectations": {
-        "expect_or_quarantine": {
+        "expect_or_fail": {
             "valid_customer": """
                 customer_id IS NOT NULL AND
                 email LIKE '%@%.%' AND
@@ -268,7 +265,6 @@ Key Features:
 - Support for complex SQL expressions
 - Multiple expectations per table
 - Quality metrics tracking
-- Quarantine table management
 
 ### Cloud Files Notification Support
 
