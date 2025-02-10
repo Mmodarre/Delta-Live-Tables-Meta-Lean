@@ -291,23 +291,8 @@ config = {
 
 #### Row-Level Quality Metrics
 
-```python
-config = {
-    "dataQualityExpectations": {
-        "expect_or_drop": {
-            "row_quality_check": """
-                CASE 
-                    WHEN all_columns_not_null THEN 1.0
-                    WHEN required_columns_not_null THEN 0.8
-                    ELSE 0.0
-                END >= 0.8
-            """
-        }
-    }
-}
-```
 
-Key Features:
+Key Features: ----edit reqiured
 
 - Three enforcement levels:
   - `expect_or_fail`: Fails pipeline on violation
@@ -328,7 +313,9 @@ For detailed setup instructions, see [File Notification Mode Setup](https://lear
 
 The framework supports automated ingestion using cloud storage notifications through the `cloudFileNotificationsConfig` option in Bronze metadata. For more details, see [Auto Loader](https://docs.databricks.com/ingestion/auto-loader/index.html) and [Cloud Files Configuration](https://docs.databricks.com/ingestion/auto-loader/options.html).
 
-```yaml
+
+---edit required
+```yaml 
 cloudFileNotificationsConfig:
   cloudProvider: "azure"                # azure, aws, or gcp
   directoryToMonitor: "/data/raw/"      # Source directory path
@@ -341,7 +328,7 @@ cloudFileNotificationsConfig:
 ```
 
 Example Bronze metadata configuration with notifications:
-
+-- edit require missing group
 ```python
 config = {
     "dataFlowId": "sales_data",
@@ -388,7 +375,7 @@ Useful for:
 - Simple dimension updates
 - Deduplication of source records (automatically handles duplicates by keeping latest version)
 - Systems that send multiple records with same key but different timestamps
-
+--- edit require - group missing
 ```python
 config = {
     "dataFlowId": "customer_dimension",
@@ -427,7 +414,7 @@ config = {
     }
 }
 ```
-
+--- edit required
 Key SCD Type 2 Configuration Options:
 
 - `scdType`: Set to "2" for historical tracking
