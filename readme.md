@@ -49,9 +49,8 @@ Manages data transformations with settings for:
 - Column transformations
 - Data quality checks
 - CDC operations
-- View materialization
+- Materialized Views
   - Supports materialized views across catalogs/schemas
-  - Auto-refreshes every 60 seconds
   - Uses standard SQL syntax
   - For details, see Databricks documentation on [Materialized Views in DLT](https://docs.databricks.com/en/delta-live-tables/index.html#materialized-view) and [Create a Delta Live Tables materialized view](https://docs.databricks.com/en/delta-live-tables/python-ref.html#create-a-delta-live-tables-materialized-view-or-streaming-table)
 
@@ -85,34 +84,8 @@ config = {
     "targetDetails": {
         "database": "reporting_catalog.summaries",
         "table": "product_category_summary"
-    },
-    "tableProperties": {
-        "delta.autoOptimize.optimizeWrite": "true",
-        "delta.autoOptimize.autoCompact": "true"
     }
-}
-```
-
-## Code Architecture
-
-```ascii
-src/
-├── core/
-│   ├── dataflow_pipeline.py     # Main pipeline orchestration
-│   ├── pipeline_readers.py      # Source data readers
-│   └── dataflow_specs.py        # Metadata schema definitions
-├── utils/
-│   ├── metadata_utils.py        # Metadata management utilities
-│   ├── quality_utils.py         # Data quality functions
-│   └── cdc_utils.py            # CDC processing utilities
-├── jobs/
-│   ├── create_md_tables.py      # Metadata table creation
-│   ├── populate_bronze_job.py   # Bronze metadata population
-│   └── populate_silver_job.py   # Silver metadata population
-└── pipeline/
-    ├── bronze_pipeline.py       # Bronze layer pipeline logic
-    ├── silver_pipeline.py       # Silver layer pipeline logic
-    └── init_dlt_meta_pipeline.py # Pipeline initialization
+    }
 ```
 
 ### Core Components Details
@@ -190,32 +163,18 @@ def populate_silver_metadata():
     # Manages view definitions
 ```
 
-### Pipeline Modules
-
-#### bronze_pipeline.py
-
-```python
-class BronzePipeline:
-    # Handles ingestion workflows
-    # Applies quality rules
-```
-
-#### silver_pipeline.py
-
-```python
-class SilverPipeline:
-    # Executes transformations
-    # Applies business rules
-    # Creates materialized views
-```
-
 ## Implementation
 
 ### Example Metadata Population Scripts
 
 The framework includes example scripts for populating metadata tables located in the `examples_populate` directory.
+Similar files are also in the main code directory. For every target table the Notebook cell needs to be replicated
+and the variables adjusted.
+
+These Notebooks are set up as part of a Databricks Workflow using the `populate_metadata_job.yml`
 
 ### Metadata Schema
+More detailed information available as inline comments in the Example Notebooks 
 
 ```sql
 -- Common fields
@@ -291,15 +250,17 @@ config = {
 
 #### Row-Level Quality Metrics
 
-
-Key Features: ----edit reqiured
+Key Features:
 
 - Three enforcement levels:
-  - `expect_or_fail`: Fails pipeline on violation
-  - `expect_or_drop`: Drops invalid records
+  - `expect_or_fail`: Invalid records prevent the update from succeeding. Manual intervention is required before reprocessing. This expectation causes a failure of a single flow and does not cause other flows in your pipeline to fail.
+  - `expect_or_drop`: Invalid records are dropped before data is written to the target. The count of dropped records is logged alongside other dataset metrics.
+  - `expect_or_warn` : Invalid records are written to the target. The count of valid and invalid records is logged alongside other dataset metrics.
 - Support for complex SQL expressions
 - Multiple expectations per table
 - Quality metrics tracking
+
+[Documentation](https://docs.databricks.com/en/delta-live-tables/expectations.html)
 
 ### Cloud Files Notification Support
 
@@ -313,9 +274,9 @@ For detailed setup instructions, see [File Notification Mode Setup](https://lear
 
 The framework supports automated ingestion using cloud storage notifications through the `cloudFileNotificationsConfig` option in Bronze metadata. For more details, see [Auto Loader](https://docs.databricks.com/ingestion/auto-loader/index.html) and [Cloud Files Configuration](https://docs.databricks.com/ingestion/auto-loader/options.html).
 
+- Note: This feature in the framework is undergoing changes - Please reach out if you'd need to use it. 
 
----edit required
-```yaml 
+```yaml
 cloudFileNotificationsConfig:
   cloudProvider: "azure"                # azure, aws, or gcp
   directoryToMonitor: "/data/raw/"      # Source directory path
@@ -375,9 +336,10 @@ Useful for:
 - Simple dimension updates
 - Deduplication of source records (automatically handles duplicates by keeping latest version)
 - Systems that send multiple records with same key but different timestamps
---- edit require - group missing
+
 ```python
 config = {
+    "dataFlowGroup" : "customers_Bronze",
     "dataFlowId": "customer_dimension",
     "cdcApplyChanges": {
         "scdType": "1",
@@ -398,6 +360,7 @@ SCD Type 1 configuration automatically handles deduplication by:
 
 ```python
 config = {
+    "dataFlowGroup" : "customers_Bronze",
     "dataFlowId": "customer_dimension",
     "cdcApplyChanges": {
         "scdType": "2",
@@ -541,9 +504,10 @@ Key Configuration Points:
 - ✅ Expectations and Quality Metrics
 - ✅ Auto Loader and CDC
 - ❌ Direct Publishing Mode (Private Preview)
-  - The framework currently does not support Direct Publishing Mode which allows multi catalog and schema writes
+  - The framework currently does not support Direct Publishing Mode for Streaming Tables which allows multi catalog and schema writes
   - Will be implemented once the feature becomes generally available
   - Existing pipelines use traditional DLT execution model
+  - Materialized Views support DPM
 
 ### Deployment Structure
 
