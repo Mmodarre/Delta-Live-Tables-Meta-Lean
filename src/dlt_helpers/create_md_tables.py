@@ -66,8 +66,7 @@ spark.sql(f'CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.silver_
     whereClause ARRAY < STRING >, \
     partitionColumns ARRAY < STRING >, \
     cdcApplyChanges STRING, \
-    isMaterializedView STRING, \
-    manualSql STRING, \
+    materializedView STRING, \
     dataQualityExpectations STRING, \
     version STRING, \
     createDate TIMESTAMP, \
