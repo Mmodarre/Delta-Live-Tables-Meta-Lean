@@ -1,5 +1,15 @@
 # DLT Meta Lean Framework Documentation
 
+## Table of Contents
+- [Overview](#overview)
+- [Benefits](#benefits)
+- [Dependencies](#dependencies)
+- [Architecture](#architecture)
+- [Implementation](#implementation)
+- [Getting Started](#getting-started)
+- [Common Issues & Solutions](#common-issues--solutions)
+- [License](#license)
+
 ## Overview
 
 A metadata-driven framework for building [Delta Live Tables (DLT)](https://docs.databricks.com/en/delta-live-tables/index.html) pipelines in Databricks. The framework provides a configurable way to manage data ingestion and transformation pipelines through metadata tables rather than hard-coded pipeline logic.
