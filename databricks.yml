@@ -45,9 +45,9 @@ targets:
       catalog: "mehdidatalake_catalog"
     workspace:
       host: https://adb-XXXXX.11.azuredatabricks.net
-      # We always use /Users/mehdi.modarressi@databricks.com for all resources to make sure we only have a single copy.
+      # We always use /Users/XXXX@databricks.com for all resources to make sure we only have a single copy.
       # If this path results in an error, please make sure you have a recent version of the CLI installed.
-      root_path: /Users/mehdi.modarressi@databricks.com/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Users/XXXX@databricks.com/.bundle/${bundle.name}/${bundle.target}
     run_as:
       # This runs as XXXX in production. We could also use a service principal here,
       # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
