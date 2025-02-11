@@ -58,25 +58,28 @@ selectExp = None
 whereClause = None
 partitionColumns = None
 cdcApplyChanges = None #'{"apply_as_deletes": "operation = \'DELETE\'","track_history_except_column_list": ["file_path","processing_time"], "except_column_list": ["operation"], "keys": ["customer_id"], "scd_type": "2", "sequence_by": "operation_date"}'
-materiazedView = """
-SELECT
-    last_updated,
-    ttl,
-    version,
-    station.station_id,
-    ebike.battery_charge_percentage,
-    ebike.displayed_number,
-    ebike.docking_capability,
-    ebike.is_lbs_internal_rideable,
-    ebike.make_and_model,
-    ebike.range_estimate.conservative_range_miles AS conservative_range_miles,
-    ebike.range_estimate.estimated_range_miles AS estimated_range_miles,
-    ebike.rideable_id
-FROM
-    mehdidatalake_catalog.retail_cdc.ebikes_at_station_bronze_dlt_meta
-LATERAL VIEW explode(data.stations) AS station
-LATERAL VIEW explode(station.ebikes) AS ebike
-"""
+materiazedView = None
+## Example of how to create a SQL Statement
+## For Materialized Views.
+# """
+# SELECT
+#     last_updated,
+#     ttl,
+#     version,
+#     station.station_id,
+#     ebike.battery_charge_percentage,
+#     ebike.displayed_number,
+#     ebike.docking_capability,
+#     ebike.is_lbs_internal_rideable,
+#     ebike.make_and_model,
+#     ebike.range_estimate.conservative_range_miles AS conservative_range_miles,
+#     ebike.range_estimate.estimated_range_miles AS estimated_range_miles,
+#     ebike.rideable_id
+# FROM
+#     mehdidatalake_catalog.retail_cdc.ebikes_at_station_bronze_dlt_meta
+# LATERAL VIEW explode(data.stations) AS station
+# LATERAL VIEW explode(station.ebikes) AS ebike
+# """
 dataQualityExpectations = None
 quarantineTargetDetails = None
 quarantineTableProperties = None
