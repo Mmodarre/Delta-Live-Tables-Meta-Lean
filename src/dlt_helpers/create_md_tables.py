@@ -2,29 +2,30 @@
 dbutils.widgets.text('env',defaultValue='')
 
 # COMMAND ----------
-dbutils.widgets.text('catalog',defaultValue='')
+
+dbutils.widgets.text('Metadata_Catalog',defaultValue='')
 
 # COMMAND ----------
 
-dbutils.widgets.text('schema',defaultValue='_meta')
+dbutils.widgets.text('Metadata_Schema',defaultValue='_meta')
+
 # COMMAND ----------
 
-catalog =dbutils.widgets.get("catalog")
+meta_catalog =dbutils.widgets.get("Metadata_Catalog")
+
+# COMMAND ----------
+
+meta_schema = dbutils.widgets.get("Metadata_Schema")
+
 # COMMAND ----------
 
 env =dbutils.widgets.get("env")
-# COMMAND ----------
-
-schema = dbutils.widgets.get("schema")
-# COMMAND ----------
-spark.sql(
-    f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
 
 # COMMAND ----------
 
 
 
-spark.sql(f"CREATE TABLE IF NOT EXISTS {catalog}{env}.{schema}.bronze_dataflowspec_table ( \
+spark.sql(f"CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.bronze_dataflowspec_table ( \
     dataFlowId STRING, \
     dataFlowGroup STRING, \
     sourceFormat STRING, \
@@ -52,7 +53,7 @@ spark.sql(f"CREATE TABLE IF NOT EXISTS {catalog}{env}.{schema}.bronze_dataflowsp
 
 # COMMAND ----------
 
-spark.sql(f'CREATE TABLE IF NOT EXISTS {catalog}{env}.{schema}.silver_dataflowspec_table ( \
+spark.sql(f'CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.silver_dataflowspec_table ( \
     dataFlowId STRING, \
     dataFlowGroup STRING, \
     sourceFormat STRING, \
@@ -65,7 +66,8 @@ spark.sql(f'CREATE TABLE IF NOT EXISTS {catalog}{env}.{schema}.silver_dataflowsp
     whereClause ARRAY < STRING >, \
     partitionColumns ARRAY < STRING >, \
     cdcApplyChanges STRING, \
-    materializedView STRING, \
+    isMaterializedView STRING, \
+    manualSql STRING, \
     dataQualityExpectations STRING, \
     version STRING, \
     createDate TIMESTAMP, \

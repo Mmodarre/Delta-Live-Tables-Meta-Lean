@@ -2,24 +2,41 @@
 dbutils.widgets.text('env',defaultValue='')
 
 # COMMAND ----------
-%pip install -e /dbfs/FileStore/Mehdi_Modarressi/dlt_helpers-0.1-py3-none-any.whl
+
+dbutils.widgets.text('Target_Catalog',defaultValue='')
 
 # COMMAND ----------
 
-dbutils.widgets.text('catalog',defaultValue='')
+dbutils.widgets.text('Target_Schema',defaultValue='edw_bluebikes_ebikes_bronze')
 
 # COMMAND ----------
 
-dbutils.widgets.text('schema',defaultValue='_meta')
+dbutils.widgets.text('Metadata_Catalog',defaultValue='')
+
 # COMMAND ----------
 
-catalog =dbutils.widgets.get("catalog")
+dbutils.widgets.text('Metadata_Schema',defaultValue='_meta')
+
+# COMMAND ----------
+
+target_catalog =dbutils.widgets.get("Target_Catalog")
+
+# COMMAND ----------
+
+target_schema = dbutils.widgets.get("Target_Schema")
+
+# COMMAND ----------
+
+meta_catalog =dbutils.widgets.get("Metadata_Catalog")
+
+# COMMAND ----------
+
+meta_schema = dbutils.widgets.get("Metadata_Schema")
+
 # COMMAND ----------
 
 env =dbutils.widgets.get("env")
-# COMMAND ----------
 
-db = dbutils.widgets.get("schema")
 # COMMAND ----------
 
 from dlt_helpers.populate_md import populate_bronze
@@ -31,7 +48,11 @@ from pyspark.sql.functions import current_user
 dataFlowId = '100-Customers'
 dataFlowGroup = "B1"
 sourceFormat = "cloudFiles"
-sourceDetails = {"path":f"/Volumes/mehdidatalake_catalog"+dbutils.widgets.get("env")+"/retail_cdc/retail_landing/cdc_raw/customers","source_database":"customers","source_table":"customers"}
+sourceDetails = {
+        "path":f"/Volumes/{target_catalog}{env}/{target_schema}/retail_landing/cdc_raw/customers",
+        "source_database":"customers",
+        "source_table":"customers"
+    }
 readerConfigOptions ={
         "cloudFiles.format": "json",
         "cloudFiles.rescuedDataColumn": "_rescued_data",
@@ -39,18 +60,19 @@ readerConfigOptions ={
         "cloudFile.readerCaseSensitive": "false",
         "cloudFiles.useNotifications": "false"
     }
-cloudFileNotificationsConfig = {
-        "cloudFiles.subscriptionId": "az_subscription_id",
-        "cloudFiles.tenantId": "adls_tenant_id_key_name",
-        "cloudFiles.resourceGroup": "az_resource_group",
-        "cloudFiles.clientId": "adls_client_id_key_name",
-        "cloudFiles.clientSecret": "adls_secret_key_name",
-        "configJsonFilePath": "dbfs:/FileStore/Mehdi_Modarressi/config/config-2.json",
-        "kvSecretScope": "key_vault_name"
-    }
+cloudFileNotificationsConfig = None
+# {
+#         "cloudFiles.subscriptionId": "az_subscription_id",
+#         "cloudFiles.tenantId": "adls_tenant_id_key_name",
+#         "cloudFiles.resourceGroup": "az_resource_group",
+#         "cloudFiles.clientId": "adls_client_id_key_name",
+#         "cloudFiles.clientSecret": "adls_secret_key_name",
+#         "configJsonFilePath": "dbfs:/FileStore/Mehdi_Modarressi/config/config-2.json",
+#         "kvSecretScope": "key_vault_name"
+#     }
 schema = None
 targetFormat = 'delta'
-targetDetails = {"database":"mehdidatalake_catalog"+dbutils.widgets.get("env")+".retail_cdc","table":"customers_dlt_meta"}
+targetDetails = {"database":f"{target_catalog}{env}.{target_schema}","table":"customers_dlt_meta"}
 tableProperties = None
 partitionColumns = None
 cdcApplyChanges = None
@@ -59,9 +81,9 @@ quarantineTargetDetails = None
 quarantineTableProperties = None
 createDate = datetime.datetime.now()
 updateDate = datetime.datetime.now()
-createdBy = spark.range(1).select(current_user()).head()[0]
+createdBy =  spark.range(1).select(current_user()).head()[0]
 updatedBy = spark.range(1).select(current_user()).head()[0]
-BRONZE_MD_TABLE = f"{catalog}{env}.{db}.bronze_dataflowspec_table" # type: ignore
+BRONZE_MD_TABLE = f"{meta_catalog}{env}.{meta_schema}.bronze_dataflowspec_table" # type: ignore
 
 
 
