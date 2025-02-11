@@ -87,7 +87,7 @@ materiazedView = None
 # LATERAL VIEW explode(data.stations) AS station
 # LATERAL VIEW explode(station.ebikes) AS ebike
 # """
-dataQualityExpectations = None
+dataQualityExpectations = None # Example: '{"expect_or_drop": {"no_rescued_data": "_rescued_data IS NULL","valid_customer_id": "customers_id IS NOT NULL"}}'
 quarantineTargetDetails = None
 quarantineTableProperties = None
 createDate = datetime.datetime.now()
@@ -96,5 +96,10 @@ createdBy = spark.range(1).select(current_user()).head()[0]
 updatedBy = spark.range(1).select(current_user()).head()[0]
 SILVER_MD_TABLE = BRONZE_MD_TABLE = f"{meta_catalog}{env}.{meta_schema}.silver_dataflowspec_table" # type: ignore
 
+<<<<<<< Updated upstream
 
 populate_silver(SILVER_MD_TABLE,dataFlowId, dataFlowGroup, sourceFormat, sourceDetails, readerConfigOptions, targetFormat, targetDetails, tableProperties,selectExp,whereClause,partitionColumns, cdcApplyChanges, materiazedView, dataQualityExpectations,createDate, createdBy,updateDate, updatedBy,spark)
+=======
+## Populate silver function, merges changes in to the MD table. If there are no changes, it will IGNORE and the version will not be incremented.
+populate_silver(SILVER_MD_TABLE,dataFlowId, dataFlowGroup, sourceFormat, sourceDetails, readerConfigOptions, targetFormat, targetDetails, tableProperties,selectExp,whereClause,partitionColumns, cdcApplyChanges, materiazedView, dataQualityExpectations,createDate, createdBy,updateDate, updatedBy,spark)
+>>>>>>> Stashed changes
