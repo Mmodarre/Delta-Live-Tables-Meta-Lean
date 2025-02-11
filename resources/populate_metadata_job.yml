@@ -2,6 +2,7 @@ resources:
   jobs:
     populate_metadata_job:
       name: populate_metadata_job
+      ## If NOT using SERVERLESS, uncomment the following lines and provide the job cluster key
       # job_clusters:
       #   - job_cluster_key: populate_metadata_job_culster
       #     new_cluster:
@@ -23,7 +24,8 @@ resources:
           notebook_task:
             base_parameters:
               env: ${var.env}
-              catalog: ${var.catalog}
+              Metadata_Catalog: ${var.Metadata_Catalog}
+              Metadata_Schema: ${var.Metadata_Schema}
             notebook_path: ../src/dlt_helpers/create_md_tables.py
             source: WORKSPACE
         - task_key: populate_bronze
@@ -35,7 +37,8 @@ resources:
           notebook_task:
             base_parameters:
               env: ${var.env}
-              catalog: ${var.catalog}
+              Metadata_Catalog: ${var.Metadata_Catalog}
+              Metadata_Schema: ${var.Metadata_Schema}
             notebook_path: ../src/populate_bronze_job.py
             source: WORKSPACE
         - task_key: populate_silver
@@ -47,7 +50,8 @@ resources:
           notebook_task:
             base_parameters:
               env: ${var.env}
-              catalog: ${var.catalog}
+              Metadata_Catalog: ${var.Metadata_Catalog}
+              Metadata_Schema: ${var.Metadata_Schema}
             notebook_path: ../src/populate_silver_job.py
             source: WORKSPACE
       queue:

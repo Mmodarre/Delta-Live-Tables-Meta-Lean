@@ -1,7 +1,7 @@
-# This is a Databricks asset bundle definition for aemo_wem_test.
+# This is a Databricks asset bundle definition for DLT_META_LEAN.
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
-  name: aemo_wem_test
+  name: DLT_META_LEAN
 
 include:
   - resources/*.yml
@@ -22,7 +22,7 @@ targets:
     mode: development
     default: true
     workspace:
-      host: https://adb-984752964297111.11.azuredatabricks.net
+      host: https://adb-XXXXX.11.azuredatabricks.net
     variables:
       env: ''
       catalog: "mehdidatalake_catalog"
@@ -33,7 +33,7 @@ targets:
   #
   # staging:
   #   workspace:
-  #     host: https://adb-984752964297111.11.azuredatabricks.net
+  #     host: https://adb-XXXXX.11.azuredatabricks.net
 
   # The 'prod' target, used for production deployment.
   prod:
@@ -44,11 +44,11 @@ targets:
       env: ''
       catalog: "mehdidatalake_catalog"
     workspace:
-      host: https://adb-984752964297111.11.azuredatabricks.net
+      host: https://adb-XXXXX.11.azuredatabricks.net
       # We always use /Users/mehdi.modarressi@databricks.com for all resources to make sure we only have a single copy.
       # If this path results in an error, please make sure you have a recent version of the CLI installed.
       root_path: /Users/mehdi.modarressi@databricks.com/.bundle/${bundle.name}/${bundle.target}
     run_as:
-      # This runs as mehdi.modarressi@databricks.com in production. We could also use a service principal here,
+      # This runs as XXXX in production. We could also use a service principal here,
       # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
-      user_name: mehdi.modarressi@databricks.com
+      user_name: XXXX
