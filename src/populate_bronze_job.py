@@ -1,4 +1,12 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC # Note
+# MAGIC - Sample for populating the Bronze Metadata Table.
+# MAGIC - This Notebook is designed to run in a Databricks workflow when deployed through CI/CD. 
+# MAGIC
+
+# COMMAND ----------
+
 dbutils.widgets.text('env',defaultValue='')
 
 # COMMAND ----------

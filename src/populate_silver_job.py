@@ -1,4 +1,11 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC # Note
+# MAGIC - Sample for populating the Silver Metadata Table.
+# MAGIC - This Notebook is designed to run in a Databricks workflow when deployed through CI/CD. 
+
+# COMMAND ----------
+
 dbutils.widgets.text('env',defaultValue='')
 
 # COMMAND ----------
@@ -46,12 +53,12 @@ from pyspark.sql.functions import current_user
 # COMMAND ----------
 
 
-dataFlowId = '001-ebikes_at_station'
-dataFlowGroup = "BBB_Silver"
-sourceFormat = "delta"
-sourceDetails = {"source_database" : f"mehdidatalake_catalog{env}.edw_bluebikes_ebikes_bronze","source_table": "ebikes_at_station_bronze_dlt_meta"}
-readerConfigOptions = None
-targetFormat = 'delta'
+dataFlowId = '001-ebikes_at_station' # Unique ID for the dataflow -- PK
+dataFlowGroup = "BBB_Silver" # Dataflow group ID -- PK
+sourceFormat = "delta" # Reading from Bronze Layer Delta Table
+sourceDetails = {"source_database" : f"mehdidatalake_catalog{env}.edw_bluebikes_ebikes_bronze","source_table": "ebikes_at_station_bronze_dlt_meta"}  #Source Table Details
+readerConfigOptions = None 
+targetFormat = 'delta' # F
 targetDetails = {"database":f"{target_catalog}{env}.{target_schema}","table":"ebikes_at_station_silver_dlt_meta"}
 tableProperties = None
 selectExp = None
@@ -91,10 +98,3 @@ SILVER_MD_TABLE = BRONZE_MD_TABLE = f"{meta_catalog}{env}.{meta_schema}.silver_d
 
 
 populate_silver(SILVER_MD_TABLE,dataFlowId, dataFlowGroup, sourceFormat, sourceDetails, readerConfigOptions, targetFormat, targetDetails, tableProperties,selectExp,whereClause,partitionColumns, cdcApplyChanges, materiazedView, dataQualityExpectations,createDate, createdBy,updateDate, updatedBy,spark)
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC
-# MAGIC select * from IDENTIFIER(:Metadata_Catalog || :env || '.' || :Metadata_Schema || '.silver_dataflowspec_table')
-# MAGIC
