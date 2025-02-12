@@ -1,6 +1,7 @@
 # DLT Meta Lean Framework Documentation
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Benefits](#benefits)
 - [Dependencies](#dependencies)
@@ -184,7 +185,8 @@ and the variables adjusted.
 These Notebooks are set up as part of a Databricks Workflow using the `populate_metadata_job.yml`
 
 ### Metadata Schema
-More detailed information available as inline comments in the Example Notebooks 
+
+More detailed information available as inline comments in the Example Notebooks
 
 ```sql
 -- Common fields
@@ -284,7 +286,7 @@ For detailed setup instructions, see [File Notification Mode Setup](https://lear
 
 The framework supports automated ingestion using cloud storage notifications through the `cloudFileNotificationsConfig` option in Bronze metadata. For more details, see [Auto Loader](https://docs.databricks.com/ingestion/auto-loader/index.html) and [Cloud Files Configuration](https://docs.databricks.com/ingestion/auto-loader/options.html).
 
-- Note: This feature in the framework is undergoing changes - Please reach out if you'd need to use it. 
+- Note: This feature in the framework is undergoing changes - Please reach out if you'd need to use it.
 
 ```yaml
 cloudFileNotificationsConfig:
@@ -300,6 +302,7 @@ cloudFileNotificationsConfig:
 
 Example Bronze metadata configuration with notifications:
 -- edit require missing group
+
 ```python
 config = {
     "dataFlowId": "sales_data",
@@ -337,7 +340,6 @@ The framework supports different SCD types through the `cdcApplyChanges` configu
 - [Change Data Capture with Delta Live Tables](https://docs.databricks.com/delta-live-tables/cdc.html)
 - [Apply Changes Into Delta Lake](https://docs.databricks.com/delta-live-tables/cdc.html#apply-changes-into-delta-lake)
 - [CDC with Auto Loader](https://docs.databricks.com/ingestion/auto-loader/cdc.html)
-
 
 #### SCD Type 1 (Overwrite)
 
@@ -387,6 +389,7 @@ config = {
     }
 }
 ```
+
 --- edit required
 Key SCD Type 2 Configuration Options:
 
