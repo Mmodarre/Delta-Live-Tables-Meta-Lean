@@ -1,0 +1,39 @@
+resources:
+  jobs:
+    run_dlt_pipelines:
+      name: run_dlt_pipelines
+      schedule:
+        quartz_cron_expression: 50 36 13 * * ?
+        timezone_id: UTC
+        pause_status: PAUSED
+      max_concurrent_runs: 0
+      tasks:
+        - task_key: bronze_pipeline
+          email_notifications: {}
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.dlt_meta_bronze.id}
+            full_refresh: false
+        - task_key: set_high_watermark
+          run_if: ALL_SUCCESS
+          depends_on:
+            - task_key: bronze_pipeline
+          email_notifications: {}
+          notebook_task:
+            base_parameters:
+              env: ${var.env}
+              Metadata_Catalog: ${var.Metadata_Catalog}
+              Metadata_Schema: ${var.Metadata_Schema}
+              Target_Catalog: ${var.Target_Catalog}
+              Target_Schema: ${var.Target_Bronze_Schema}
+            notebook_path: ../src/set_high_watermark.py
+            source: WORKSPACE
+        - task_key: silver_pipeline
+          email_notifications: {}
+          run_if: ALL_SUCCESS
+          depends_on:
+            - task_key: bronze_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.dlt_meta_silver.id}
+            full_refresh: false
+      queue:
+        enabled: true

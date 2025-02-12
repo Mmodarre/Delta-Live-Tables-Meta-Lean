@@ -31,13 +31,14 @@ targets:
     mode: development
     default: true
     workspace:
-      host: https://adb-XXXXX.11.azuredatabricks.net
+      host: https://adb-984752964297111.11.azuredatabricks.net/
     variables:
       env: ''
       Metadata_Catalog: "mehdidatalake_catalog"
       Metadata_Schema: "_meta"
       Target_Catalog: "mehdidatalake_catalog"
-      Target_Schema: "retail_cdc"
+      Target_Bronze_Schema: "retail_cdc"
+      Target_Silver_Schema: "retail_cdc"
     
 
   ## Optionally, there could be a 'staging' target here.
@@ -57,13 +58,14 @@ targets:
       Metadata_Catalog: "mehdidatalake_catalog"
       Metadata_Schema: "_meta"
       Target_Catalog: "mehdidatalake_catalog"
-      Target_Schema: "retail_cdc"
+      Target_Bronze_Schema: "retail_cdc"
+      Target_Silver_Schema: "retail_cdc"
     workspace:
-      host: https://adb-XXXXX.11.azuredatabricks.net
+      host: https://adb-984752964297111.11.azuredatabricks.net/
       # We always use /Users/XXXX@databricks.com for all resources to make sure we only have a single copy.
       # If this path results in an error, please make sure you have a recent version of the CLI installed.
-      root_path: /Users/XXXX@databricks.com/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Users/mehdi.modarressi@databricks.com/.bundle/${bundle.name}/${bundle.target}
     run_as:
       # This runs as XXXX in production. We could also use a service principal here,
       # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
-      user_name: XXXX
+      user_name: mehdi.modarressi

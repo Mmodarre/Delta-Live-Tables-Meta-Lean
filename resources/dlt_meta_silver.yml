@@ -1,0 +1,22 @@
+resources:
+  pipelines:
+    dlt_meta_silver:
+      name: dlt_meta_silver
+      ## If NOT using SERVERLESS, uncomment the following lines
+      # clusters:
+      #   - label: default
+      #     num_workers: 1
+      #     node_type_id: Standard_D4s_v5
+      configuration:
+        "silver.dataflowspecTable": "${var.Metadata_Catalog}${var.env}.${var.Metadata_Schema}.silver_dataflowspec_table"
+        "layer": "silver"
+        "silver.group": "B1"
+        "spark.databricks.acl.needAdminPermissionToViewLogs": "false"
+      libraries:
+        - notebook:
+            path: ../src/init_dlt_meta_pipeline.py
+      channel: PREVIEW
+      
+      catalog: ${var.Target_Catalog}${var.env}
+      schema: ${var.Target_Silver_Schema}
+      serverless: true

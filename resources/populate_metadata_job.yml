@@ -39,6 +39,8 @@ resources:
               env: ${var.env}
               Metadata_Catalog: ${var.Metadata_Catalog}
               Metadata_Schema: ${var.Metadata_Schema}
+              Target_Catalog: ${var.Target_Catalog}
+              Target_Schema: ${var.Target_Bronze_Schema}
             notebook_path: ../src/populate_bronze_job.py
             source: WORKSPACE
         - task_key: populate_silver
@@ -52,6 +54,8 @@ resources:
               env: ${var.env}
               Metadata_Catalog: ${var.Metadata_Catalog}
               Metadata_Schema: ${var.Metadata_Schema}
+              Target_Catalog: ${var.Target_Catalog}
+              Target_Schema: ${var.Target_Silver_Schema}
             notebook_path: ../src/populate_silver_job.py
             source: WORKSPACE
       queue:
