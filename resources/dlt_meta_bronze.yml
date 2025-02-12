@@ -8,7 +8,7 @@ resources:
       #     num_workers: 1
       #     node_type_id: Standard_D4s_v5
       configuration:
-        "bronze.dataflowspecTable": "mehdidatalake_catalog${var.env}.${var.Metadata_Schema}.bronze_dataflowspec_table"
+        "bronze.dataflowspecTable": "${var.Metadata_Catalog}${var.env}.${var.Metadata_Schema}.bronze_dataflowspec_table"
         "layer": "bronze"
         "bronze.group": "B1"
         "spark.databricks.acl.needAdminPermissionToViewLogs": "false"
@@ -17,6 +17,6 @@ resources:
             path: ../src/init_dlt_meta_pipeline.py
       channel: PREVIEW
       
-      catalog: mehdidatalake_catalog${var.env}
-      schema: retail_cdc
+      catalog: ${var.Target_Catalog}${var.env}
+      schema: ${var.Target_Bronze_Schema}
       serverless: true
