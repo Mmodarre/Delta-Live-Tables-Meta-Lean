@@ -61,7 +61,7 @@ readerConfigOptions = None
 targetFormat = 'delta' # Writing to Silver Layer Delta Table
 targetDetails = {"database":f"{target_catalog}{env}.{target_schema}","table":"ebikes_at_station_silver_dlt_meta"}
 tableProperties = None
-selectExp = None
+selectExp = None ## Example: ["cast(customers_id as String) as customer_id","address","email","firstname as first_name","lastname as last_name","operation","TO_TIMESTAMP(operation_date, 'MM-dd-yyyy HH:mm:ss') as operation_date","file_path","current_timestamp() as processing_time"]
 whereClause = None
 partitionColumns = None
 cdcApplyChanges = None # Example:  #'{"apply_as_deletes": "operation = \'DELETE\'","track_history_except_column_list": ["file_path","processing_time"], "except_column_list": ["operation"], "keys": ["customer_id"], "scd_type": "2", "sequence_by": "operation_date"}' Documentation: https://docs.databricks.com/en/delta-live-tables/cdc.html

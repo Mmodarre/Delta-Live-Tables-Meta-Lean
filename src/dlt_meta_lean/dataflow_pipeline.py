@@ -398,16 +398,17 @@ class DataflowPipeline:
         )
 
         sequenced_by_data_type = None
-
-        if cdc_apply_changes.except_column_list:
-            modified_schema = StructType([])
-            if struct_schema:
-                for field in struct_schema.fields:
+        modified_schema = StructType([])
+        if struct_schema:
+            for field in struct_schema.fields:
+                if cdc_apply_changes.except_column_list:
                     if field.name not in cdc_apply_changes.except_column_list:
                         modified_schema.add(field)
-                    if field.name == cdc_apply_changes.sequence_by:
-                        sequenced_by_data_type = field.dataType
-                struct_schema = modified_schema
+                else:
+                    modified_schema.add(field)                    
+                if field.name == cdc_apply_changes.sequence_by:
+                    sequenced_by_data_type = field.dataType
+            struct_schema = modified_schema
 
         if struct_schema and cdc_apply_changes.scd_type == "2":
             struct_schema.add(StructField("__START_AT", sequenced_by_data_type))
