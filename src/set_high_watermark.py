@@ -1,10 +1,20 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC
+# MAGIC ## NOTEBOOK PURPOSE:
+# MAGIC - This notebook tracks high watermark values from target tables and updates a central logging table
+# MAGIC - High watermarks are used to track data processing progress and enable incremental loading
+# MAGIC - Set up input parameters through widgets
+# MAGIC
+# MAGIC ##### This Notebook Assumes `data_intergation_logs` table is created
 
-# NOTEBOOK PURPOSE:
-# This notebook tracks high watermark values from target tables and updates a central logging table
-# High watermarks are used to track data processing progress and enable incremental loading
+# COMMAND ----------
 
-# Set up input parameters through widgets
+# MAGIC %md
+# MAGIC ### Creating parameters using Notebook widgets
+
+# COMMAND ----------
+
 dbutils.widgets.text('Metadata_Catalog',defaultValue='')  # Catalog containing metadata tables
 
 # COMMAND ----------
@@ -13,7 +23,7 @@ dbutils.widgets.text('Metadata_Schema',defaultValue='_meta')  # Schema for metad
 
 # COMMAND ----------
 
-dbutils.widgets.text('checkpoint_volume',defaultValue='')  # Volume for stream checkpoints
+dbutils.widgets.text('checkpoint_volume',defaultValue='')  # Volume for streaming checkpoints
 
 # COMMAND ----------
 
@@ -29,7 +39,11 @@ dbutils.widgets.text('dataFlowGroup',defaultValue='')  # Filter for specific dat
 
 # COMMAND ----------
 
-# Get parameter values from widgets
+# MAGIC %md
+# MAGIC ### Get parameter values from widgets
+
+# COMMAND ----------
+
 meta_catalog =dbutils.widgets.get("Metadata_Catalog")
 
 # COMMAND ----------
@@ -51,6 +65,11 @@ dataFlowGroup = dbutils.widgets.get("dataFlowGroup")
 # COMMAND ----------
 
 integration_logs_table = dbutils.widgets.get("intergration_logs_table")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Main Function to merge streaming watermark using the Bronze Table Change Data Feed to Integration Logs Table
 
 # COMMAND ----------
 
