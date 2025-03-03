@@ -1,28 +1,35 @@
 # Databricks notebook source
-dbutils.widgets.text('Metadata_Catalog',defaultValue='')
+
+# NOTEBOOK PURPOSE:
+# This notebook tracks high watermark values from target tables and updates a central logging table
+# High watermarks are used to track data processing progress and enable incremental loading
+
+# Set up input parameters through widgets
+dbutils.widgets.text('Metadata_Catalog',defaultValue='')  # Catalog containing metadata tables
 
 # COMMAND ----------
 
-dbutils.widgets.text('Metadata_Schema',defaultValue='_meta')
+dbutils.widgets.text('Metadata_Schema',defaultValue='_meta')  # Schema for metadata tables
 
 # COMMAND ----------
 
-dbutils.widgets.text('checkpoint_volume',defaultValue='')
+dbutils.widgets.text('checkpoint_volume',defaultValue='')  # Volume for stream checkpoints
 
 # COMMAND ----------
 
-dbutils.widgets.text('Metadata_Table',defaultValue='bronze_dataflowspec_table')
+dbutils.widgets.text('Metadata_Table',defaultValue='bronze_dataflowspec_table')  # Table containing dataflow configurations
 
 # COMMAND ----------
 
-dbutils.widgets.text('intergration_logs_table',defaultValue='data_intergration_logs')
+dbutils.widgets.text('intergration_logs_table',defaultValue='data_intergration_logs')  # Target table for logging watermarks
 
 # COMMAND ----------
 
-dbutils.widgets.text('dataFlowGroup',defaultValue='')
+dbutils.widgets.text('dataFlowGroup',defaultValue='')  # Filter for specific dataflow group
 
 # COMMAND ----------
 
+# Get parameter values from widgets
 meta_catalog =dbutils.widgets.get("Metadata_Catalog")
 
 # COMMAND ----------
@@ -48,13 +55,16 @@ integration_logs_table = dbutils.widgets.get("intergration_logs_table")
 # COMMAND ----------
 
 # DBTITLE 1,## Streaming Data Integration Logs Upsert Logic Using Bronze Table Change Data Feed
-from pyspark.sql.functions import col, expr, window
-
-# metadata_table = f"{meta_catalog}.{meta_schema}.{meta_table}"
-# integration_table = f"{meta_catalog}.{meta_schema}.{integration_logs_table}"
-
+from pyspark.sql.functions import col, expr
 
 def upsertToDelta(microBatchOutputDF, batchId):
+    """
+    Function to merge streaming watermark updates into the integration logs table.
+    
+    Args:
+        microBatchOutputDF: DataFrame containing the batch of new watermark values
+        batchId: ID of the current microbatch
+    """
     microBatchOutputDF.createOrReplaceTempView("updates")
     microBatchOutputDF.sparkSession.sql(
         f"""
@@ -67,20 +77,30 @@ def upsertToDelta(microBatchOutputDF, batchId):
     )
 
 
+# Read the metadata table filtered by dataflow group
 df = spark.read.table(f"{meta_catalog}.{meta_schema}.{meta_table}").where(
     col("dataFlowGroup") == dataFlowGroup
 )
+
+# Extract target details and high watermark configuration
 targets = df.select("targetDetails", "sourceFormat", "highWaterMark")
+
+# Process each target table to track its watermark
 for row in targets.collect():
+    # Extract target table information
     catalog = row["targetDetails"]["database"].split(".")[0]
     schema = row["targetDetails"]["database"].split(".")[1]
     table = row["targetDetails"]["table"]
     full_target_table = f"{catalog}.{schema}.{table}"
+    
+    # Extract high watermark tracking information
     contract_id = row["highWaterMark"]["contract_id"]
     contract_version = row["highWaterMark"]["contract_version"]
     contract_major_version = row["highWaterMark"]["contract_major_version"]
     watermark_column = row["highWaterMark"]["watermark_column"]
 
+    # Create a streaming query to track the max watermark value
+    # Uses Delta Change Data Feed to capture changes efficiently
     result = (
         spark.readStream.option("readChangeFeed", "true")
         .format("delta")
@@ -89,22 +109,24 @@ for row in targets.collect():
         )
         .groupBy()
         .agg(
+            # Create tracking columns for the watermark log
             expr(f"'{contract_id}' as contract_id"),
             expr(f"'{contract_version}' as contract_version"),
             expr(f"'{contract_major_version}' as contract_major_version"),
-            expr(f"""concat("([{watermark_column}] > '",cast(max({watermark_column}) as string), "')") as watermark_next_value"""), ##([dtEvent] > '2024-12-23 11:59:25.713000')
+            # Format the watermark as a SQL expression for future use (e.g., "[dtEvent] > '2024-12-23 11:59:25.713000'")
+            expr(f"""concat("([{watermark_column}] > '",cast(max({watermark_column}) as string), "')") as watermark_next_value"""), 
             expr(f"'{full_target_table}' as target_table"),
-            expr(f"max(file_path) as source_file"),
-            expr(f"current_timestamp() as __insert_ts")
+            expr("max(file_path) as source_file"),
+            expr("current_timestamp() as __insert_ts")
         )
     )
 
-    #display(result)
-
+    # Write the watermark tracking information to the integration logs table
+    # Uses foreachBatch to apply the upsert logic
     (
         result.writeStream.foreachBatch(upsertToDelta)
         .outputMode("update")
-        .trigger(availableNow=True)
+        .trigger(availableNow=True)  # Process available data and stop
         .option(
             "checkpointLocation",
             f"/Volumes/{meta_catalog}/{meta_schema}/{checkpoint_volume}/checkpoints/data_integration_logs/contract_id/{contract_id}",

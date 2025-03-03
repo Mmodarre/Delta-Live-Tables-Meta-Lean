@@ -629,26 +629,12 @@ databricks bundle deploy --environment dev
 
 ### Option 2: Manual Deployment
 
-#### Summary of steps to get started:
-
-- Install Databricks Extension for VScode (OPTIONAL)
-- Clone the Git Repo to Workspace
-- src/create_md_tables
-- set variable
-- Run Create tables
-- Populate bronze MD using /Delta-Live-Tables-Meta-Lean/src/populate_bronze_job
-- Create a DLT pipeline with the following configurations - Refer to the screenshot in the repo 
-  - "bronze.dataflowspecTable": "${var.Metadata_Catalog}${var.env}.${var.Metadata_Schema}.bronze_dataflowspec_table"
-  - "layer": "bronze"
-  - "bronze.group": "B1"
-- Run Validate on the pipeline
-- Run the pipeline
-
 1. **Repository Setup**
 
-
 ```bash
-git clone https://github.com/Mmodarre/Delta-Live-Tables-Meta-Lean.git
+git clone https://github.com/your-org/dlt-meta-framework.git
+cd dlt-meta-framework
+pip install -r requirements.txt
 ```
 
 2. **Create Metadata Tables**
