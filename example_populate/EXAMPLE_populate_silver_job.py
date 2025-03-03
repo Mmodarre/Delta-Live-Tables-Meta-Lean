@@ -53,18 +53,18 @@ from pyspark.sql.functions import current_user
 # COMMAND ----------
 
 
-dataFlowId = '001-ebikes_at_station' # Unique ID for the dataflow -- PK
-dataFlowGroup = "BBB_Silver" # Dataflow group ID -- PK
-sourceFormat = "delta" # Reading from Bronze Layer Delta Table
-sourceDetails = {"source_database" : f"mehdidatalake_catalog{env}.edw_bluebikes_ebikes_bronze","source_table": "ebikes_at_station_bronze_dlt_meta"}  #Source Table Details
-readerConfigOptions = None 
-targetFormat = 'delta' # Writing to Silver Layer Delta Table
-targetDetails = {"database":f"{target_catalog}{env}.{target_schema}","table":"ebikes_at_station_silver_dlt_meta"}
+dataFlowId = '001-ebikes_at_station' ##(REQUIRED) Unique ID for the dataflow -- PK
+dataFlowGroup = "BBB_Silver" ##(REQUIRED) Dataflow group ID -- PK
+sourceFormat = "delta" ##(REQUIRED) Reading from Bronze Layer Delta Table
+sourceDetails = {"database" : f"mehdidatalake_catalog{env}.edw_bluebikes_ebikes_bronze","table": "ebikes_at_station_bronze_dlt_meta"}  ##(REQUIRED) Source Table Details
+readerConfigOptions = None
+targetFormat = 'delta' ##(REQUIRED) Writing to Silver Layer Delta Table
+targetDetails = {"database":f"{target_catalog}{env}.{target_schema}","table":"ebikes_at_station_silver_dlt_meta"} #(REQUIRED) Target Table Details
 tableProperties = None
-selectExp = None ## Example: ["cast(customers_id as String) as customer_id","address","email","firstname as first_name","lastname as last_name","operation","TO_TIMESTAMP(operation_date, 'MM-dd-yyyy HH:mm:ss') as operation_date","file_path","current_timestamp() as processing_time"]
+selectExp =["* EXCEPT (_rescued_data,processing_time)","current_timestamp() as processing_time"] ##(REQUIRED) Select Expression to be used for eliminating columns, change column names, add new columns, change data types etc. 
 whereClause = None
 partitionColumns = None
-cdcApplyChanges = None # Example:  #'{"apply_as_deletes": "operation = \'DELETE\'","track_history_except_column_list": ["file_path","processing_time"], "except_column_list": ["operation"], "keys": ["customer_id"], "scd_type": "2", "sequence_by": "operation_date"}' Documentation: https://docs.databricks.com/en/delta-live-tables/cdc.html
+cdcApplyChanges = None #Example '{"track_history_except_column_list": ["file_path","processing_time"],"except_column_list": ["operation"], "keys": ["Entry No_"], "scd_type": "2", "sequence_by": "timestamp"}' Documentation: https://docs.databricks.com/en/delta-live-tables/cdc.html
 materiazedView = None
 ## IF this field is populated, the dataflow will be treated as a Materialized View 
 # and the selectExp will be used to create the view.

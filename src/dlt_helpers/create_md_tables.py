@@ -30,6 +30,7 @@ spark.sql(f"CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.bronze_
     dataFlowGroup STRING, \
     sourceFormat STRING, \
     sourceDetails MAP < STRING,STRING >, \
+    highWaterMark MAP < STRING, STRING >, \
     readerConfigOptions MAP < STRING, STRING >, \
     cloudFileNotificationsConfig MAP < STRING,STRING >, \
     targetFormat STRING, \
