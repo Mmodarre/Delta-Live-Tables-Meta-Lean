@@ -25,6 +25,9 @@ resources:
               Metadata_Schema: ${var.Metadata_Schema}
               Target_Catalog: ${var.Target_Catalog}
               Target_Schema: ${var.Target_Bronze_Schema}
+              Integration_logs_table: ${var.Integration_logs_table}
+              checkpoint_volume: ${var.checkpoint_volume}
+              dataFlowGroup: 'B1'
             notebook_path: ../src/set_high_watermark.py
             source: WORKSPACE
         - task_key: silver_pipeline

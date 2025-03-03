@@ -19,6 +19,10 @@ variables:
       default: None
   Target_Silver_Schema:
       default: None
+  Integration_logs_table:
+      default: None
+  checkpoint_volume:
+      default: None
 
 
 targets:
@@ -38,7 +42,8 @@ targets:
       Metadata_Schema: "_meta"
       Target_Catalog: "MY CATALOG"
       Target_Schema: "MY SCHEMA"
-    
+      Integration_logs_table: "MY INTEGRATION LOGS TABLE"
+      checkpoint_volume: "MY CHECKPOINTS VOLUME"
 
   ## Optionally, there could be a 'staging' target here.
   ## (See Databricks docs on CI/CD at https://docs.databricks.com/dev-tools/bundles/ci-cd.html.)
