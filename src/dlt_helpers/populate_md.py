@@ -15,6 +15,7 @@ from pyspark.sql.functions import *
 ## @param dataFlowGroup: The group to which the pipeline belongs
 ## @param sourceFormat: The format of the source data
 ## @param sourceDetails: The details of the source data
+## @param highWaterMark: The high water mark for the pipeline
 ## @param readerConfigOptions: The configuration options for the reader
 ## @param cloudFileNotificationsConfig: The configuration options for cloud file notifications
 ## @param schema: The schema of the source data
@@ -34,13 +35,14 @@ from pyspark.sql.functions import *
 ##
 ## @return None
 ##
-def populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,readerConfigOptions,cloudFileNotificationsConfig,schema,targetFormat,targetDetails,tableProperties,partitionColumns,cdcApplyChanges,dataQualityExpectations,quarantineTargetDetails,quarantineTableProperties,createDate,createdBy,updateDate,updatedBy,spark):
+def populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,sourceDetails,highWaterMark,readerConfigOptions,cloudFileNotificationsConfig,schema,targetFormat,targetDetails,tableProperties,partitionColumns,cdcApplyChanges,dataQualityExpectations,quarantineTargetDetails,quarantineTableProperties,createDate,createdBy,updateDate,updatedBy,spark):
 
   schema_definition = StructType([
     StructField('dataFlowId', StringType(), True),
     StructField('dataFlowGroup', StringType(), True),
     StructField('sourceFormat', StringType(), True),
     StructField('sourceDetails', MapType(StringType(), StringType(), True), True),
+    StructField('highWaterMark', MapType(StringType(), StringType(), True), True),
     StructField('readerConfigOptions', MapType(StringType(), StringType(), True), True),
     StructField('cloudFileNotificationsConfig', MapType(StringType(), StringType(), True), True),
     StructField('schema',StringType(),True),
@@ -57,7 +59,7 @@ def populate_bronze(BRONZE_MD_TABLE,dataFlowId,dataFlowGroup,sourceFormat,source
     StructField('updateDate', TimestampType(), True), ## NEED TO REMOVE
     StructField('updatedBy', StringType(), True) ## NEED TO REMOVE
 ])
-  data = [(dataFlowId, dataFlowGroup, sourceFormat, sourceDetails, readerConfigOptions,cloudFileNotificationsConfig, schema, targetFormat, targetDetails, tableProperties,partitionColumns, cdcApplyChanges, dataQualityExpectations, quarantineTargetDetails,quarantineTableProperties,createDate, createdBy,updateDate, updatedBy)]
+  data = [(dataFlowId, dataFlowGroup, sourceFormat, sourceDetails,highWaterMark, readerConfigOptions,cloudFileNotificationsConfig, schema, targetFormat, targetDetails, tableProperties,partitionColumns, cdcApplyChanges, dataQualityExpectations, quarantineTargetDetails,quarantineTableProperties,createDate, createdBy,updateDate, updatedBy)]
   ## Create a dataframe from the data
   bronze_new_record_df = spark.createDataFrame(data, schema_definition)
   
@@ -74,6 +76,7 @@ WHEN MATCHED and
 md5(CONCAT(
   coalesce(CAST(bronze_md.sourceFormat AS STRING),""),
   coalesce(CAST(bronze_md.sourceDetails AS STRING),""),
+  coalesce(CAST(bronze_md.highWaterMark AS STRING),""),
   coalesce(CAST(bronze_md.readerConfigOptions AS STRING),""),
   coalesce(CAST(bronze_md.cloudFileNotificationsConfig AS STRING),""),
   coalesce(CAST(bronze_md.schema AS STRING),""),
@@ -91,6 +94,7 @@ md5(CONCAT(
     dataFlowGroup = updates.dataFlowGroup,
     sourceFormat = updates.sourceFormat,
     sourceDetails = updates.sourceDetails,
+    highWaterMark = updates.highWaterMark,
     readerConfigOptions = updates.readerConfigOptions,
     cloudFileNotificationsConfig = updates.cloudFileNotificationsConfig,
     schema = updates.schema,
@@ -113,6 +117,7 @@ WHEN NOT MATCHED
     dataFlowGroup,
     sourceFormat,
     sourceDetails,
+    highWaterMark,
     readerConfigOptions,
     cloudFileNotificationsConfig,
     schema,
@@ -135,6 +140,7 @@ WHEN NOT MATCHED
     updates.dataFlowGroup,
     updates.sourceFormat,
     updates.sourceDetails,
+    updates.highWaterMark,
     updates.readerConfigOptions,
     updates.cloudFileNotificationsConfig,
     updates.schema,

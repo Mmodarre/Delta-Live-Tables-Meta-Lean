@@ -61,6 +61,7 @@ sourceDetails = {
         "source_database":"customers",
         "source_table":"customers"
     } #Source Details, If "cloudFiles" the database and table are ignore and are only stored in MD table for reference
+highWaterMark = None # High Water Mark for the dataflow, if not provided, It will be populating as NULL {"contract_id":"abc123-456-cfd","contract_version":"1.000","contract_major_version":"1","watermark_column": "operation_date"}
 readerConfigOptions ={
         "cloudFiles.format": "json",
         "cloudFiles.rescuedDataColumn": "_rescued_data",
