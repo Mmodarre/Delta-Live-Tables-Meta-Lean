@@ -208,6 +208,7 @@ targetFormat STRING,                  -- Target format
 targetDetails MAP<STRING,STRING>,     -- Target configuration
 tableProperties MAP<STRING,STRING>,   -- Table properties
 partitionColumns ARRAY<STRING>,       -- Partitioning columns
+liquidClusteringColumns MAP<STROMG,STRING>, -- Liquid Clustering Key Columns
 cdcApplyChanges STRING,              -- CDC configuration
 dataQualityExpectations STRING,      -- Quality rules
 version STRING,                       -- Config version
@@ -218,8 +219,9 @@ updatedBy STRING                     -- Last updater
 
 -- Layer-specific fields
 -- Bronze
-cloudFileNotificationsConfig MAP<STRING,STRING>,
-schema STRING
+cloudFileNotificationsConfig MAP<STRING,STRING>, -- Use CloudFileNotification instead of Directory Listing Mode
+highWaterMark MAP < STRING, STRING >, -- Write the High WaterMark Column to Integration Logs Table
+schema STRING [TODO]
 
 -- Silver
 selectExp ARRAY<STRING>,
@@ -413,9 +415,7 @@ Key SCD Type 2 Configuration Options:
 
 The framework includes support for high watermark tracking to enable incremental processing and facilitate data lineage tracking through the `set_high_watermark.py` utility.
 
-#### Overview
-
-High watermark tracking is essential for:
+#### High watermark tracking is essential for
 
 - Efficient incremental data loading
 - Preventing data reprocessing
@@ -447,6 +447,7 @@ config = {
 ```
 
 Key Configuration Elements:
+
 - `contract_id`: Unique identifier for the data contract
 - `contract_version`: Version of the data contract (semantic versioning)
 - `contract_major_version`: Major version number only
@@ -455,6 +456,7 @@ Key Configuration Elements:
 #### Watermark Tracking Process
 
 The `set_high_watermark.py` utility:
+
 1. Reads the metadata table filtered by dataflow group
 2. For each table with high watermark configuration:
    - Uses Delta Change Data Feed to track changes
@@ -463,6 +465,7 @@ The `set_high_watermark.py` utility:
    - Stores results in a central integration logs table
 
 The integration logs table maintains:
+
 - Current watermark values per contract
 - Table lineage information
 - Source file tracking
@@ -591,7 +594,7 @@ Key Configuration Points:
 - Each pipeline operates within its own schema namespace
 - Schema layout example:
 
-  ```
+```DIR
   catalog_name
   ├── bronze_schema
   │   ├── raw_table1
@@ -609,11 +612,15 @@ Key Configuration Points:
 - ✅ Unity Catalog Integration
 - ✅ Expectations and Quality Metrics
 - ✅ Auto Loader and CDC
-- ❌ Direct Publishing Mode (Private Preview)
-  - The framework currently does not support Direct Publishing Mode for Streaming Tables which allows multi catalog and schema writes
-  - Will be implemented once the feature becomes generally available
-  - Existing pipelines use traditional DLT execution model
-  - Materialized Views support DPM
+- ✅ Gold Layer support through Materialized Views using SQL (Python Coming Soon ✨🆕 )
+- ✅ Liquid Clustering With Manual Key 🗝️ Selection Only (🚫 DLT Does Not Support AUTO Liquid Cluster)
+- ❌ Direct Publishing Mode Not Supported (Private Preview ✨🆕)
+  - The framework currently does not support Direct Publishing Mode for Streaming Tables which allows multi catalog and schema writes (Coming Soon ✨🆕 )
+  - Will be implemented once the feature becomes Generally Available
+  - Existing pipelines use classic DLT execution model
+
+- ✅ High Water Mark From Bronze Tables For Ingestion
+- 🆕䷾ Support for Complex JSON (Coming Soon ✨🆕)
 
 ### Deployment Structure
 
