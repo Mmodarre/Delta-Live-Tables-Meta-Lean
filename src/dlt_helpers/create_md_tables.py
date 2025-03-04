@@ -81,7 +81,7 @@ spark.sql(f'CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.silver_
 # COMMAND ----------
 
 # DBTITLE 1,Create Data Integration Logs Table to hold High Watermarks
-spark.sql(f"""CREATE TABLE IF NOT EXISTS {meta_catalog}.{meta_schema}.data_intergration_logs (
+spark.sql(f"""CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.data_intergration_logs (
   contract_id STRING NOT NULL,
   contract_version DECIMAL(7,3) NOT NULL DEFAULT 1.0,
   contract_major_version INT NOT NULL DEFAULT 1,
