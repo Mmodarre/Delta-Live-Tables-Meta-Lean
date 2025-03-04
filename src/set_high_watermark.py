@@ -96,10 +96,8 @@ def upsertToDelta(microBatchOutputDF, batchId):
     )
 
 
-# Read the metadata table filtered by dataflow group
-df = spark.read.table(f"{meta_catalog}.{meta_schema}.{meta_table}").where(
-    col("dataFlowGroup") == dataFlowGroup
-)
+# Read the metadata table filtered by dataflow group and only if high watermark is set
+df = spark.read.table(f"{meta_catalog}.{meta_schema}.{meta_table}").where(col("dataFlowGroup") == dataFlowGroup and col("highWaterMark").isNotNull())
 
 # Extract target details and high watermark configuration
 targets = df.select("targetDetails", "sourceFormat", "highWaterMark")
