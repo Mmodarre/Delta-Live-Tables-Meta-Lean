@@ -23,6 +23,7 @@ env =dbutils.widgets.get("env")
 
 # COMMAND ----------
 
+# DBTITLE 1,Create Bronze Metadata Table
 
 
 spark.sql(f"CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.bronze_dataflowspec_table ( \
@@ -54,6 +55,7 @@ spark.sql(f"CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.bronze_
 
 # COMMAND ----------
 
+# DBTITLE 1,Create Silver Metadata Table
 spark.sql(f'CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.silver_dataflowspec_table ( \
     dataFlowId STRING, \
     dataFlowGroup STRING, \
@@ -75,3 +77,31 @@ spark.sql(f'CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.silver_
     updateDate TIMESTAMP, \
     updatedBy STRING)'
     )
+
+# COMMAND ----------
+
+# DBTITLE 1,Create Data Integration Logs Table to hold High Watermarks
+spark.sql(f"""CREATE TABLE IF NOT EXISTS {meta_catalog}.{meta_schema}.data_intergration_logs (
+  contract_id STRING NOT NULL,
+  contract_version DECIMAL(7,3) NOT NULL DEFAULT 1.0,
+  contract_major_version INT NOT NULL DEFAULT 1,
+  watermark_next_value STRING,
+  target_table STRING,
+  source_file STRING,
+  __insert_ts TIMESTAMP NOT NULL DEFAULT current_timestamp())
+  TBLPROPERTIES (
+  'delta.checkpoint.writeStatsAsJson' = 'false',
+  'delta.checkpoint.writeStatsAsStruct' = 'true',
+  'delta.columnMapping.mode' = 'name',
+  'delta.enableDeletionVectors' = 'true',
+  'delta.feature.allowColumnDefaults' = 'supported',
+  'delta.feature.appendOnly' = 'supported',
+  'delta.feature.changeDataFeed' = 'supported',
+  'delta.feature.checkConstraints' = 'supported',
+  'delta.feature.columnMapping' = 'supported',
+  'delta.feature.deletionVectors' = 'supported',
+  'delta.feature.generatedColumns' = 'supported',
+  'delta.feature.identityColumns' = 'supported',
+  'delta.feature.invariants' = 'supported',
+  'delta.minReaderVersion' = '3',
+  'delta.minWriterVersion' = '7') """)
