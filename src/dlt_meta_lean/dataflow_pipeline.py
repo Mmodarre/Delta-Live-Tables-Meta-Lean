@@ -175,6 +175,7 @@ class DataflowPipeline:
                 self.write_to_delta,
                 name=f"{bronze_dataflow_spec.targetDetails['table']}",
                 partition_cols=DataflowSpecUtils.get_partition_cols(bronze_dataflow_spec.partitionColumns),
+                cluster_by=DataflowSpecUtils.get_liquid_clustering_cols(bronze_dataflow_spec.liquidClusteringColumns),
                 table_properties=bronze_dataflow_spec.tableProperties,
                 path=target_path,
                 comment=f"bronze dlt table{bronze_dataflow_spec.targetDetails['table']}",
@@ -195,6 +196,7 @@ class DataflowPipeline:
                 self.write_to_delta,
                 name=f"{silver_dataflow_spec.targetDetails['table']}",
                 partition_cols=DataflowSpecUtils.get_partition_cols(silver_dataflow_spec.partitionColumns),
+                cluster_by=DataflowSpecUtils.get_liquid_clustering_cols(silver_dataflow_spec.liquidClusteringColumns),
                 table_properties=silver_dataflow_spec.tableProperties,
                 path=target_path,
                 comment=f"silver dlt table{silver_dataflow_spec.targetDetails['table']}",
@@ -333,6 +335,7 @@ class DataflowPipeline:
                         name=f"{bronzeDataflowSpec.targetDetails['table']}",
                         table_properties=bronzeDataflowSpec.tableProperties,
                         partition_cols=DataflowSpecUtils.get_partition_cols(bronzeDataflowSpec.partitionColumns),
+                        cluster_by=DataflowSpecUtils.get_liquid_clustering_cols(bronzeDataflowSpec.liquidClusteringColumns),
                         path=target_path,
                         comment=f"bronze dlt table{bronzeDataflowSpec.targetDetails['table']}",
                     )
@@ -345,6 +348,7 @@ class DataflowPipeline:
                             name=f"{bronzeDataflowSpec.targetDetails['table']}",
                             table_properties=bronzeDataflowSpec.tableProperties,
                             partition_cols=DataflowSpecUtils.get_partition_cols(bronzeDataflowSpec.partitionColumns),
+                            cluster_by=DataflowSpecUtils.get_liquid_clustering_cols(bronzeDataflowSpec.liquidClusteringColumns),
                             path=target_path,
                             comment=f"bronze dlt table{bronzeDataflowSpec.targetDetails['table']}",
                         )
@@ -359,6 +363,7 @@ class DataflowPipeline:
                             name=f"{bronzeDataflowSpec.targetDetails['table']}",
                             table_properties=bronzeDataflowSpec.tableProperties,
                             partition_cols=DataflowSpecUtils.get_partition_cols(bronzeDataflowSpec.partitionColumns),
+                            cluster_by=DataflowSpecUtils.get_liquid_clustering_cols(bronzeDataflowSpec.liquidClusteringColumns),
                             path=target_path,
                             comment=f"bronze dlt table{bronzeDataflowSpec.targetDetails['table']}",
                         )
@@ -379,6 +384,7 @@ class DataflowPipeline:
                         name=f"{bronzeDataflowSpec.quarantineTargetDetails['table']}",
                         table_properties=bronzeDataflowSpec.quarantineTableProperties,
                         partition_cols=q_partition_cols,
+                        cluster_by=DataflowSpecUtils.get_liquid_clustering_cols(bronzeDataflowSpec.liquidClusteringColumns),
                         path=target_path,
                         comment=f"""bronze dlt quarantine_path table
                         {bronzeDataflowSpec.quarantineTargetDetails['table']}""",
@@ -421,14 +427,9 @@ class DataflowPipeline:
             name=f"{self.dataflowSpec.targetDetails['table']}",
             table_properties=self.dataflowSpec.tableProperties,
             partition_cols=DataflowSpecUtils.get_partition_cols(self.dataflowSpec.partitionColumns),
+            cluster_by=DataflowSpecUtils.get_liquid_clustering_cols(self.dataflowSpec.liquidClusteringColumns),
             path=target_path,
             schema=struct_schema
-            ## DQEs at silver layers are moved 
-            ## to the view and need not to be applied here
-            
-            #expect_all=expect_all_dict,
-            #expect_all_or_drop=expect_all_or_drop_dict,
-            # expect_all_or_fail=expect_all_or_fail_dict,
         )
 
         apply_as_deletes = None
@@ -491,7 +492,7 @@ class DataflowPipeline:
             dataflowspec_list = DataflowSpecUtils.get_bronze_dataflow_spec(spark)
         elif "silver" == layer.lower():
             dataflowspec_list = DataflowSpecUtils.get_silver_dataflow_spec(spark)
-        logger.info(f"Length of Dataflow Spec {len(dataflowspec_list)}")
+        logger.info("Length of Dataflow Spec %d", len(dataflowspec_list))
         for dataflowSpec in dataflowspec_list:
             logger.info("Printing Dataflow Spec")
             logger.info(dataflowSpec)

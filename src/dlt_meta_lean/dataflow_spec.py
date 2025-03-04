@@ -30,6 +30,7 @@ class BronzeDataflowSpec:
     tableProperties: map
     schema: str
     partitionColumns: list
+    liquidClusteringColumns: list
     cdcApplyChanges: str
     dataQualityExpectations: str
     quarantineTargetDetails: map
@@ -56,6 +57,7 @@ class SilverDataflowSpec:
     selectExp: list
     whereClause: list
     partitionColumns: list
+    liquidClusteringColumns: list
     cdcApplyChanges: str
     materializedView: str
     dataQualityExpectations: str
@@ -213,6 +215,20 @@ class DataflowSpecUtils:
             else:
                 partition_cols = list(filter(None, partition_columns))
         return partition_cols
+    
+    @staticmethod
+    def get_liquid_clustering_cols(liquid_clustering_columns):
+        """Get liquid clustering columns."""
+        liquid_clustering_cols = None
+        if liquid_clustering_columns:
+            if len(liquid_clustering_columns) == 1:
+                if liquid_clustering_columns[0] == "" or liquid_clustering_columns[0].strip() == "":
+                    liquid_clustering_cols = None
+                else:
+                    liquid_clustering_cols = liquid_clustering_columns
+            else:
+                liquid_clustering_cols = list(filter(None, liquid_clustering_columns))
+        return liquid_clustering_cols
 
     @staticmethod
     def get_cdc_apply_changes(cdc_apply_changes) -> CDCApplyChanges:

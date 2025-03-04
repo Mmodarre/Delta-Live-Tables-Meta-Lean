@@ -25,7 +25,7 @@ env =dbutils.widgets.get("env")
 
 # DBTITLE 1,Create Bronze Metadata Table
 
-
+#pylint: disable=undefined-variable
 spark.sql(f"CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.bronze_dataflowspec_table ( \
     dataFlowId STRING, \
     dataFlowGroup STRING, \
@@ -39,6 +39,7 @@ spark.sql(f"CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.bronze_
     tableProperties MAP < STRING, STRING >, \
     schema STRING, \
     partitionColumns ARRAY < STRING >,\
+    liquidClusteringColumns ARRAY < STRING >,\
     cdcApplyChanges STRING, \
     dataQualityExpectations STRING,\
     quarantineTargetDetails MAP < STRING, STRING >, \
@@ -67,7 +68,8 @@ spark.sql(f'CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.silver_
     tableProperties MAP < STRING,STRING >, \
     selectExp ARRAY < STRING >, \
     whereClause ARRAY < STRING >, \
-    partitionColumns ARRAY < STRING >, \
+    liquidClusteringColumns ARRAY < STRING >, \
+    clusteringColumns ARRAY < STRING >, \
     cdcApplyChanges STRING, \
     materializedView STRING, \
     dataQualityExpectations STRING, \

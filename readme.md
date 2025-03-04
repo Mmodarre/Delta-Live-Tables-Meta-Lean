@@ -7,6 +7,15 @@
 - [Dependencies](#dependencies)
 - [Architecture](#architecture)
 - [Implementation](#implementation)
+  - [Example Metadata Population Scripts](#example-metadata-population-scripts)
+  - [Metadata Schema](#metadata-schema)
+  - [Data Quality Configuration](#data-quality-configuration)
+  - [Cloud Files Notification Support](#cloud-files-notification-support)
+  - [SCD (Slowly Changing Dimension) Support](#scd-slowly-changing-dimension-support)
+  - [High Watermark Tracking](#high-watermark-tracking)
+  - [Supported Source Types](#supported-source-types)
+  - [Current Feature Support and Limitations](#current-feature-support-and-limitations)
+  - [Deployment Structure](#deployment-structure)
 - [Getting Started](#getting-started)
 - [Common Issues & Solutions](#common-issues--solutions)
 - [License](#license)
@@ -399,6 +408,90 @@ Key SCD Type 2 Configuration Options:
 - `apply_as_deletes`: SQL condition to identify delete operations
 - `track_history_except_column_list`: Columns to exclude from version history
 - `except_column_list`: Columns to exclude from change detection
+
+### High Watermark Tracking
+
+The framework includes support for high watermark tracking to enable incremental processing and facilitate data lineage tracking through the `set_high_watermark.py` utility.
+
+#### Overview
+
+High watermark tracking is essential for:
+
+- Efficient incremental data loading
+- Preventing data reprocessing
+- Tracking progress across pipeline runs
+- Ensuring data lineage and traceability
+- Supporting audit requirements
+
+#### Configuration
+
+To enable high watermark tracking, include the `highWaterMark` configuration in your metadata:
+
+```python
+config = {
+    "dataFlowId": "customer_orders",
+    "dataFlowGroup": "SALES",
+    "sourceFormat": "delta",
+    "sourceDetails": {
+        "database": "retail_catalog.bronze",
+        "table": "customer_orders"
+    },
+    "highWaterMark": {
+        "contract_id": "SALES-ORDERS-001",
+        "contract_version": "1.0.0",
+        "contract_major_version": "1",
+        "watermark_column": "order_timestamp"
+    },
+    // ...other configuration...
+}
+```
+
+Key Configuration Elements:
+- `contract_id`: Unique identifier for the data contract
+- `contract_version`: Version of the data contract (semantic versioning)
+- `contract_major_version`: Major version number only
+- `watermark_column`: Column used to track processing progress (typically a timestamp or sequential ID)
+
+#### Watermark Tracking Process
+
+The `set_high_watermark.py` utility:
+1. Reads the metadata table filtered by dataflow group
+2. For each table with high watermark configuration:
+   - Uses Delta Change Data Feed to track changes
+   - Calculates the maximum watermark value
+   - Formats a SQL expression for future incremental loads
+   - Stores results in a central integration logs table
+
+The integration logs table maintains:
+- Current watermark values per contract
+- Table lineage information
+- Source file tracking
+- Processing timestamps
+
+#### Usage in Incremental Loading
+
+Once watermarks are set, they can be used in subsequent pipeline runs:
+
+```python
+# Example of using stored watermark for incremental loading
+watermark = spark.sql(f"""
+    SELECT watermark_next_value 
+    FROM {meta_catalog}.{meta_schema}.{integration_logs_table}
+    WHERE contract_id = 'SALES-ORDERS-001'
+""").collect()[0][0]
+
+# Apply the watermark filter to source data
+filtered_data = source_df.filter(expr(watermark))
+```
+
+#### Implementation Notes
+
+- Watermark tracking runs as a separate process after table updates complete
+- Uses foreachBatch for reliable upsert operations
+- Supports both streaming and batch processing models
+- Creates checkpoints to ensure fault tolerance
+
+For detailed implementation, see the `set_high_watermark.py` script in the framework's source code.
 
 ### Supported Source Types
 
