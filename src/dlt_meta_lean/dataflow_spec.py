@@ -22,6 +22,7 @@ class BronzeDataflowSpec:
     dataFlowGroup: str
     sourceFormat: str
     sourceDetails: map
+    highWaterMark: map
     readerConfigOptions: map
     cloudFileNotificationsConfig: map
     targetFormat: str
