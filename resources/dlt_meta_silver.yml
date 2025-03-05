@@ -16,7 +16,6 @@ resources:
         - notebook:
             path: ../src/init_dlt_meta_pipeline.py
       channel: PREVIEW
-      
       catalog: ${var.Target_Catalog}${var.env}
       schema: ${var.Target_Silver_Schema}
       serverless: true
