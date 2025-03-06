@@ -85,7 +85,7 @@ md5(CONCAT(
   coalesce(CAST(bronze_md.targetDetails AS STRING),""),
   coalesce(CAST(bronze_md.tableProperties AS STRING),""),
   coalesce(CAST(bronze_md.partitionColumns AS STRING),""),
-  coalesce(CAST(bronze_md.liquidClusteringColumns AS STRING),"
+  coalesce(CAST(bronze_md.liquidClusteringColumns AS STRING),""),
   coalesce(CAST(bronze_md.cdcApplyChanges AS STRING),""),
   coalesce(CAST(bronze_md.dataQualityExpectations AS STRING),""),
   coalesce(CAST(bronze_md.quarantineTargetDetails AS STRING),""),

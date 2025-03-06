@@ -82,18 +82,18 @@ cloudFileNotificationsConfig = None ## If using CloudFilesNotification Mode
 schema = None # If inpute schema is defined, rather than the infer schema option
 targetFormat = 'delta' ## Target format, almost always "delta"
 targetDetails = {"database":f"{target_catalog}{env}.{target_schema}","table":"customers_dlt_meta"}
-tableProperties = None 
+tableProperties = None
 partitionColumns = None #Example: #['customer_id','operation_date'] Databricks Recommends to use Liquid Clustering instead of Partitioning
 liquidClusteringColumns = None #Example: #['customer_id','operation_date'] Databricks Highly Recommends using Liquid Clustering Doc: https://docs.databricks.com/aws/en/delta/clustering#choose-clustering-keys
 cdcApplyChanges = None # Example: '{"apply_as_deletes": "operation = \'DELETE\'","track_history_except_column_list": ["file_path","processing_time"], "except_column_list": ["operation"], "keys": ["customer_id"], "scd_type": "2", "sequence_by": "operation_date"}' Documentation: https://docs.databricks.com/en/delta-live-tables/cdc.html
 dataQualityExpectations = None # Example: '{"expect_or_drop": {"no_rescued_data": "_rescued_data IS NULL","valid_customer_id": "customers_id IS NOT NULL"}}'  Documentation: https://docs.databricks.com/en/delta-live-tables/expectations.html
-quarantineTargetDetails = None 
+quarantineTargetDetails = None
 quarantineTableProperties = None
 createDate = datetime.datetime.now()
 updateDate = datetime.datetime.now()
 createdBy =  spark.range(1).select(current_user()).head()[0]
 updatedBy = spark.range(1).select(current_user()).head()[0]
-BRONZE_MD_TABLE = f"{meta_catalog}{env}.{meta_schema}.bronze_dataflowspec_table" # type: ignore
+BRONZE_MD_TABLE = f"{meta_catalog}{env}.{meta_schema}.bronze_dataflowspec_table" # Bronze Metadata Table
 
 ## Populate Bronze function, merges changes in to the MD table. If there are no changes, it will IGNORE and the version will not be incremented.
 
