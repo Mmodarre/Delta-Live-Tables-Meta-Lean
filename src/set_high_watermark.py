@@ -31,7 +31,7 @@ dbutils.widgets.text('Metadata_Table',defaultValue='bronze_dataflowspec_table') 
 
 # COMMAND ----------
 
-dbutils.widgets.text('intergration_logs_table',defaultValue='data_intergration_logs')  # Target table for logging watermarks
+dbutils.widgets.text('integration_logs_table',defaultValue='data_intergration_logs')  # Target table for logging watermarks
 
 # COMMAND ----------
 
@@ -64,7 +64,7 @@ dataFlowGroup = dbutils.widgets.get("dataFlowGroup")
 
 # COMMAND ----------
 
-integration_logs_table = dbutils.widgets.get("intergration_logs_table")
+integration_logs_table = dbutils.widgets.get("integration_logs_table")
 
 # COMMAND ----------
 
