@@ -76,10 +76,11 @@ integration_logs_table = dbutils.widgets.get("integration_logs_table")
 # DBTITLE 1,## Streaming Data Integration Logs Upsert Logic Using Bronze Table Change Data Feed
 from pyspark.sql.functions import col, expr
 
+
 def upsertToDelta(microBatchOutputDF, batchId):
     """
     Function to merge streaming watermark updates into the integration logs table.
-    
+
     Args:
         microBatchOutputDF: DataFrame containing the batch of new watermark values
         batchId: ID of the current microbatch
@@ -87,18 +88,47 @@ def upsertToDelta(microBatchOutputDF, batchId):
     microBatchOutputDF.createOrReplaceTempView("updates")
     microBatchOutputDF.sparkSession.sql(
         f"""
-    MERGE INTO {meta_catalog}.{meta_schema}.{integration_logs_table} t
-    USING updates s
-    ON s.contract_id = t.contract_id
-    WHEN MATCHED THEN UPDATE SET *
-    WHEN NOT MATCHED THEN INSERT *
-  """
+        MERGE INTO {meta_catalog}.{meta_schema}.{integration_logs_table} t
+        USING updates s
+        ON s.contract_id = t.contract_id
+        WHEN MATCHED 
+        AND md5(CONCAT(
+            coalesce(CAST(s.watermark_next_value AS STRING),""),
+            coalesce(CAST(s.source_file AS STRING),"")
+            )) != 
+            md5(CONCAT(
+                coalesce(CAST(t.watermark_next_value AS STRING),""),
+                coalesce(CAST(t.source_file AS STRING),"")
+                ))
+                THEN UPDATE SET 
+                watermark_next_value = s.watermark_next_value,
+                source_file = s.source_file,
+                `__insert_ts` = current_timestamp()
+
+        WHEN NOT MATCHED THEN 
+        INSERT 
+        (contract_id,
+        contract_version,
+        contract_major_version,
+        watermark_next_value,
+        target_table,
+        source_file,
+        `__insert_ts`) 
+        VALUES (s.contract_id,
+        s.contract_version,
+        s.contract_major_version,
+        s.watermark_next_value,
+        s.target_table,
+        s.source_file,
+        current_timestamp())
+        """
     )
 
 
 # Read the metadata table filtered by dataflow group
-df = spark.read.table(f"{meta_catalog}.{meta_schema}.{meta_table}")\
-    .where((col("dataFlowGroup") == dataFlowGroup) & (col("highWaterMark").isNotNull()))
+df = spark.read.table(f"{meta_catalog}.{meta_schema}.{meta_table}").where(
+    (col("dataFlowGroup") == dataFlowGroup) & (col("highWaterMark").isNotNull())
+)
 
 # Extract target details and high watermark configuration
 targets = df.select("targetDetails", "sourceFormat", "highWaterMark")
@@ -110,7 +140,17 @@ for row in targets.collect():
     schema = row["targetDetails"]["database"].split(".")[1]
     table = row["targetDetails"]["table"]
     full_target_table = f"{catalog}.{schema}.{table}"
-    
+
+    if (
+        spark.sql(
+            f"""
+                 select count(*) from {full_target_table}
+                 """
+        ).collect()[0][0]
+        == 0
+    ):
+        continue
+
     # Extract high watermark tracking information
     contract_id = row["highWaterMark"]["contract_id"]
     contract_version = row["highWaterMark"]["contract_version"]
@@ -122,9 +162,7 @@ for row in targets.collect():
     result = (
         spark.readStream.option("readChangeFeed", "true")
         .format("delta")
-        .table(
-            full_target_table
-        )
+        .table(full_target_table)
         .groupBy()
         .agg(
             # Create tracking columns for the watermark log
@@ -132,10 +170,11 @@ for row in targets.collect():
             expr(f"'{contract_version}' as contract_version"),
             expr(f"'{contract_major_version}' as contract_major_version"),
             # Format the watermark as a SQL expression for future use (e.g., "[dtEvent] > '2024-12-23 11:59:25.713000'")
-            expr(f"""concat("([{watermark_column}] > '",cast(max({watermark_column}) as string), "')") as watermark_next_value"""), 
+            expr(
+                f"""concat("([{watermark_column}] > '",cast(max({watermark_column}) as string), "')") as watermark_next_value"""
+            ),
             expr(f"'{full_target_table}' as target_table"),
             expr("max(file_path) as source_file"),
-            expr("current_timestamp() as __insert_ts")
         )
     )
 
