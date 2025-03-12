@@ -10,7 +10,7 @@ import inspect
 from dlt_meta_lean.dataflow_spec import BronzeDataflowSpec, SilverDataflowSpec, DataflowSpecUtils
 from dlt_meta_lean.pipeline_readers import PipelineReaders
 
-logger = logging.getLogger('databricks.labs.dltmeta')
+logger = logging.getLogger('databricks.logger')
 logger.setLevel(logging.INFO)
 
 

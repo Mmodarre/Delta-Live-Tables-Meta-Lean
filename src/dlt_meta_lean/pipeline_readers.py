@@ -6,7 +6,7 @@ from pyspark.sql.types import StructType # pylint: disable=import-error # type: 
 from pyspark.sql.functions import from_json, col, current_timestamp # pylint: disable=import-error # type: ignore
 
 
-logger = logging.getLogger('databricks.labs.dltmeta')
+logger = logging.getLogger('databricks.logger')
 logger.setLevel(logging.INFO)
 
 

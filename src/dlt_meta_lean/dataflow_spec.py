@@ -10,7 +10,7 @@ from pyspark.sql.functions import col, lit, row_number  # pylint: disable=import
 from pyspark.sql.session import SparkSession # pylint: disable=import-error
 from pyspark.sql.window import Window   # pylint: disable=import-error
 
-logger = logging.getLogger("dlt-meta")
+logger = logging.getLogger("databricks.logger")
 logger.setLevel(logging.INFO)
 
 
@@ -44,6 +44,31 @@ class BronzeDataflowSpec:
 
 @dataclass
 class SilverDataflowSpec:
+    """A schema to hold a dataflow spec used for writing to the silver layer."""
+
+    dataFlowId: str
+    dataFlowGroup: str
+    sourceFormat: str
+    sourceDetails: map
+    readerConfigOptions: map
+    targetFormat: str
+    targetDetails: map
+    tableProperties: map
+    selectExp: list
+    whereClause: list
+    partitionColumns: list
+    liquidClusteringColumns: list
+    cdcApplyChanges: str
+    materializedView: str
+    dataQualityExpectations: str
+    version: str
+    createDate: datetime
+    createdBy: str
+    updateDate: datetime
+    updatedBy: str
+
+@dataclass
+class GoldDataflowSpec:
     """A schema to hold a dataflow spec used for writing to the silver layer."""
 
     dataFlowId: str
@@ -173,6 +198,17 @@ class DataflowSpecUtils:
         for row in dataflow_spec_rows:
             silver_dataflow_spec_list.append(SilverDataflowSpec(**row.asDict()))
         return silver_dataflow_spec_list
+    
+    @staticmethod
+    def get_gold_dataflow_spec(spark) -> List[GoldDataflowSpec]:
+        """Get gold dataflow spec list."""
+        DataflowSpecUtils.check_spark_dataflowpipeline_conf_params(spark, "gold")
+
+        dataflow_spec_rows = DataflowSpecUtils._get_dataflow_spec(spark, "gold").collect()
+        gold_dataflow_spec_list: list[GoldDataflowSpec] = []
+        for row in dataflow_spec_rows:
+            gold_dataflow_spec_list.append(GoldDataflowSpec(**row.asDict()))
+        return gold_dataflow_spec_list
 
     @staticmethod
     def check_spark_dataflowpipeline_conf_params(spark, layer_arg):
