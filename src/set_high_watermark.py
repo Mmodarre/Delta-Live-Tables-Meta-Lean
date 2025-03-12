@@ -6,7 +6,7 @@
 # MAGIC - High watermarks are used to track data processing progress and enable incremental loading
 # MAGIC - Set up input parameters through widgets
 # MAGIC
-# MAGIC ##### This Notebook Assumes `data_intergation_logs` table is created
+# MAGIC ##### This Notebook Assumes `data_integation_logs` table is created
 
 # COMMAND ----------
 
@@ -31,7 +31,7 @@ dbutils.widgets.text('Metadata_Table',defaultValue='bronze_dataflowspec_table') 
 
 # COMMAND ----------
 
-dbutils.widgets.text('integration_logs_table',defaultValue='data_intergration_logs')  # Target table for logging watermarks
+dbutils.widgets.text('integration_logs_table',defaultValue='data_integration_logs')  # Target table for logging watermarks
 
 # COMMAND ----------
 
