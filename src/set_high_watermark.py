@@ -111,14 +111,12 @@ def upsertToDelta(microBatchOutputDF, batchId):
         contract_version,
         contract_major_version,
         watermark_next_value,
-        target_table,
         source_file,
         `__insert_ts`) 
         VALUES (s.contract_id,
         s.contract_version,
         s.contract_major_version,
         s.watermark_next_value,
-        s.target_table,
         s.source_file,
         current_timestamp())
         """
