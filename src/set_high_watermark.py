@@ -148,7 +148,7 @@ for row in targets.collect():
         == 0
     ):
         continue
-
+    print(f"Tracking watermark for {full_target_table}")
     # Extract high watermark tracking information
     contract_id = row["highWaterMark"]["contract_id"]
     contract_version = row["highWaterMark"]["contract_version"]
