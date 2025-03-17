@@ -75,7 +75,7 @@ stream_from_tables = dbutils.widgets.get("streaming")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### Main Function to merge streaming watermark using the Bronze Table Change Data Feed to Integration Logs Table
+# MAGIC ### Main Function to merge Streaming(using Change Data Feed)/Batch watermark using the Bronze Table Change Data Feed to Integration Logs Table
 
 # COMMAND ----------
 
