@@ -216,7 +216,7 @@ for row in targets.collect():
             .trigger(availableNow=True)  # Process available data and stop
             .option(
                 "checkpointLocation",
-                f"/Volumes/{meta_catalog}/{meta_schema}/{checkpoint_volume}/data_integrationg_logs_checkpoints/data_integration_logs/contract_id/{contract_id}",
+                f"/Volumes/{meta_catalog}/{meta_schema}/{checkpoint_volume}/data_integrationg_logs_checkpoints/contract_id/{contract_id}",
             )
             .start()
         )
