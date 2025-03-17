@@ -38,6 +38,9 @@ dbutils.widgets.text('integration_logs_table',defaultValue='data_integration_log
 dbutils.widgets.text('dataFlowGroup',defaultValue='')  # Filter for specific dataflow group
 
 # COMMAND ----------
+dbutils.widgets.dropdown('streaming',choices=['true','false'],defaultValue='false')  # Filter for specific dataflow group
+
+# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### Get parameter values from widgets
@@ -67,6 +70,9 @@ dataFlowGroup = dbutils.widgets.get("dataFlowGroup")
 integration_logs_table = dbutils.widgets.get("integration_logs_table")
 
 # COMMAND ----------
+stream_from_tables = dbutils.widgets.get("streaming")
+
+# COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### Main Function to merge streaming watermark using the Bronze Table Change Data Feed to Integration Logs Table
@@ -75,9 +81,10 @@ integration_logs_table = dbutils.widgets.get("integration_logs_table")
 
 # DBTITLE 1,## Streaming Data Integration Logs Upsert Logic Using Bronze Table Change Data Feed
 from pyspark.sql.functions import col, expr
+from pyspark.sql.types import StructType, StructField, StringType
 
 
-def upsertToDelta(microBatchOutputDF, batchId):
+def upsertToDelta(microBatchOutputDF,batchId):
     """
     Function to merge streaming watermark updates into the integration logs table.
 
@@ -86,6 +93,7 @@ def upsertToDelta(microBatchOutputDF, batchId):
         batchId: ID of the current microbatch
     """
     microBatchOutputDF.createOrReplaceTempView("updates")
+    print("Merging new watermark values into the integration logs table...")
     microBatchOutputDF.sparkSession.sql(
         f"""
         MERGE INTO {meta_catalog}.{meta_schema}.{integration_logs_table} t
@@ -148,6 +156,7 @@ for row in targets.collect():
         == 0
     ):
         continue
+
     print(f"Tracking watermark for {full_target_table}")
     # Extract high watermark tracking information
     contract_id = row["highWaterMark"]["contract_id"]
@@ -155,9 +164,33 @@ for row in targets.collect():
     contract_major_version = row["highWaterMark"]["contract_major_version"]
     watermark_column = row["highWaterMark"]["watermark_column"]
 
-    # Create a streaming query to track the max watermark value
-    # Uses Delta Change Data Feed to capture changes efficiently
-    result = (
+
+    if stream_from_tables == 'false':
+        # Define the schema based on the result DataFrame
+        schema = StructType([
+            StructField("contract_id", StringType(), True),
+            StructField("contract_version", StringType(), True),
+            StructField("contract_major_version", StringType(), True),
+            StructField("watermark_next_value", StringType(), True),
+            StructField("target_table", StringType(), True),
+            StructField("source_file", StringType(), True)
+        ])
+        # Create an empty DataFrame with the defined schema
+        results = spark.createDataFrame([], schema)
+        result = spark.sql(f"""
+                       select '{contract_id}' as contract_id,
+                       '{contract_version}' as contract_version,
+                       '{contract_major_version}' as contract_major_version,
+                       concat("([{watermark_column}] > ",cast(max({watermark_column}) as string), ")") as watermark_next_value,
+                       '{full_target_table}' as target_table,
+                       max(file_path) as source_file
+                       from {full_target_table}
+                       group by all
+                       """)
+    
+        results = results.union(result)
+    if stream_from_tables == 'true':
+        result = (
         spark.readStream.option("readChangeFeed", "true")
         .format("delta")
         .table(full_target_table)
@@ -174,17 +207,19 @@ for row in targets.collect():
             expr(f"'{full_target_table}' as target_table"),
             expr("max(file_path) as source_file"),
         )
-    )
-
-    # Write the watermark tracking information to the integration logs table
-    # Uses foreachBatch to apply the upsert logic
-    (
-        result.writeStream.foreachBatch(upsertToDelta)
-        .outputMode("update")
-        .trigger(availableNow=True)  # Process available data and stop
-        .option(
-            "checkpointLocation",
-            f"/Volumes/{meta_catalog}/{meta_schema}/{checkpoint_volume}/checkpoints/data_integration_logs/contract_id/{contract_id}",
         )
-        .start()
-    )
+        #Write the watermark tracking information to the integration logs table
+        #Uses foreachBatch to apply the upsert logic
+        (
+            result.writeStream.foreachBatch(upsertToDelta)
+            .outputMode("update")
+            .trigger(availableNow=True)  # Process available data and stop
+            .option(
+                "checkpointLocation",
+                f"/Volumes/{meta_catalog}/{meta_schema}/{checkpoint_volume}/data_integrationg_logs_checkpoints/data_integration_logs/contract_id/{contract_id}",
+            )
+            .start()
+        )
+
+if stream_from_tables == 'false':
+    upsertToDelta(results,None)
