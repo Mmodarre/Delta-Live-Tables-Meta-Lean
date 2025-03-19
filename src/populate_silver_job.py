@@ -61,7 +61,8 @@ readerConfigOptions = None
 targetFormat = 'delta' # Writing to Silver Layer Delta Table
 targetDetails = {"database":f"{target_catalog}{env}.{target_schema}","table":"ebikes_at_station_silver_dlt_meta"}
 tableProperties = None
-selectExp = None
+## Select Expression to be used for eliminating columns, change column names, add new columns, change data types etc. here we are also generating a surrogate key using MD5 hash of all columns except the ones mentioned in the except clause and converting it to decimal(32,0)
+selectExp = ["cast(CONV(MD5(CONCAT_WS('', * except (_rescued_data, file_path,processing_time))), 16, 10) as decimal(32, 0)) AS surrogate_key", "* EXCEPT (_rescued_data,processing_time)","current_timestamp() as processing_time"] #(REQUIRED)
 whereClause = None
 partitionColumns = None #Example: #['customer_id','operation_date'] Databricks Recommends to use Liquid Clustering instead of Partitioning
 liquidClusteringColumns = None #Example: #['customer_id','operation_date'] Databricks Highly Recommends using Liquid Clustering Doc: https://docs.databricks.com/aws/en/delta/clustering#choose-clustering-keys
