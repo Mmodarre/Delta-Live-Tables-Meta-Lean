@@ -195,6 +195,8 @@ These Notebooks are set up as part of a Databricks Workflow using the `populate_
 
 ### Metadata Schema
 
+![alt text](assets/dataflowSpec_model.png)
+
 More detailed information available as inline comments in the Example Notebooks
 
 ```sql
