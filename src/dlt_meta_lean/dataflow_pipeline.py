@@ -2,10 +2,10 @@
 import json
 import logging
 import dlt
+from typing import Callable
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import expr, col
 from pyspark.sql.types import StructType, StructField
-import inspect
 
 from dlt_meta_lean.dataflow_spec import BronzeDataflowSpec, SilverDataflowSpec, DataflowSpecUtils
 from dlt_meta_lean.pipeline_readers import PipelineReaders
@@ -13,6 +13,47 @@ from dlt_meta_lean.pipeline_readers import PipelineReaders
 logger = logging.getLogger('databricks.labs.dltmeta')
 logger.setLevel(logging.INFO)
 
+class AppendFlowWriter:
+    """Append Flow Writer class."""
+
+    def __init__(self, spark, append_flow, target, struct_schema, table_properties=None, partition_cols=None,
+                 cluster_by=None):
+        """Init."""
+        self.spark = spark
+        self.target = target
+        self.append_flow = append_flow
+        self.struct_schema = struct_schema
+        self.table_properties = table_properties
+        self.partition_cols = partition_cols
+        self.cluster_by = cluster_by
+
+    def write_af_to_delta(self):
+        """Write to Delta."""
+        return dlt.read_stream(f"{self.append_flow.name}_view")
+
+    def write_flow(self):
+        """Write Append Flow."""
+        if self.append_flow.create_streaming_table:
+            dlt.create_streaming_table(
+                name=self.target,
+                table_properties=self.table_properties,
+                partition_cols=DataflowSpecUtils.get_partition_cols(self.partition_cols),
+                cluster_by=DataflowSpecUtils.get_partition_cols(self.cluster_by),
+                schema=self.struct_schema,
+                expect_all=None,
+                expect_all_or_drop=None,
+                expect_all_or_fail=None,
+            )
+        if self.append_flow.comment:
+            comment = self.append_flow.comment
+        else:
+            comment = f"append_flow={self.append_flow.name} for target={self.target}"
+        dlt.append_flow(name=self.append_flow.name,
+                        target=self.target,
+                        comment=comment,
+                        spark_conf=self.append_flow.spark_conf,
+                        once=self.append_flow.once,
+                        )(self.write_af_to_delta)
 
 class DataflowPipeline:
     """This class uses dataflowSpec to launch DLT.
@@ -24,7 +65,8 @@ class DataflowPipeline:
         [type]: [description]
     """
 
-    def __init__(self, spark, dataflow_spec, view_name, view_name_quarantine=None):
+    def __init__(self, spark, dataflow_spec, view_name, view_name_quarantine=None,
+                 custom_transform_func: Callable = None, next_snapshot_and_version: Callable = None):
         """Initialize Constructor."""
         logger.info(
             f"""dataflowSpec={dataflow_spec} ,
@@ -32,35 +74,58 @@ class DataflowPipeline:
                 view_name_quarantine={view_name_quarantine}"""
         )
         if isinstance(dataflow_spec, BronzeDataflowSpec) or isinstance(dataflow_spec, SilverDataflowSpec):
-            self.__initialize_dataflow_pipeline(spark, dataflow_spec, view_name, view_name_quarantine)
+            self.__initialize_dataflow_pipeline(spark, dataflow_spec, view_name, view_name_quarantine, custom_transform_func, next_snapshot_and_version)
         else:
             raise Exception("Dataflow not supported!")
 
-    def __initialize_dataflow_pipeline(self, spark, dataflow_spec, view_name, view_name_quarantine):
+    def __initialize_dataflow_pipeline(self, spark, dataflow_spec, view_name, view_name_quarantine, custom_transform_func, next_snapshot_and_version):
         """Initialize dataflow pipeline state."""
         self.spark = spark
         uc_enabled_str = spark.conf.get("spark.databricks.unityCatalog.enabled", "False")
+        dbp_enabled_str = spark.conf.get("pipelines.schema", None)
         uc_enabled_str = uc_enabled_str.lower()
         self.uc_enabled = True if uc_enabled_str == "true" else False
+        self.dpm_enabled = True if dbp_enabled_str else False
         self.dataflowSpec = dataflow_spec
         self.view_name = view_name
         if view_name_quarantine:
             self.view_name_quarantine = view_name_quarantine
+        self.custom_transform_func = custom_transform_func
+
         if dataflow_spec.cdcApplyChanges:
             self.cdcApplyChanges = DataflowSpecUtils.get_cdc_apply_changes(self.dataflowSpec.cdcApplyChanges)
         else:
             self.cdcApplyChanges = None
+
+        if dataflow_spec.appendFlows:
+            self.appendFlows = DataflowSpecUtils.get_append_flows(dataflow_spec.appendFlows)
+        else:
+            self.appendFlows = None
+
         if isinstance(dataflow_spec, BronzeDataflowSpec):
+            self.next_snapshot_and_version = next_snapshot_and_version
+            if self.next_snapshot_and_version:
+                self.appy_changes_from_snapshot = DataflowSpecUtils.get_apply_changes_from_snapshot(
+                    self.dataflowSpec.applyChangesFromSnapshot
+                )
+            else:
+                if dataflow_spec.sourceFormat == "snapshot":
+                    raise Exception(f"Snapshot reader function not provided for dataflowspec={dataflow_spec}!")
             if dataflow_spec.schema is not None:
                 self.schema_json = json.loads(dataflow_spec.schema)
             else:
                 self.schema_json = None
         else:
             self.schema_json = None
+            self.next_snapshot_and_version = None
+            self.appy_changes_from_snapshot = None
+        self.silver_schema = None
+
         if isinstance(dataflow_spec, SilverDataflowSpec) and not self.dataflowSpec.materializedView:
             self.silver_schema = self.get_silver_schema()
         else:
             self.silver_schema = None
+
 
     def table_has_expectations(self):
         """Table has expectations check."""
@@ -70,15 +135,14 @@ class DataflowPipeline:
         """Read DLT."""
         logger.info("In read function")
     
-        if isinstance(self.dataflowSpec, BronzeDataflowSpec):
+        if isinstance(self.dataflowSpec, BronzeDataflowSpec) and not self.next_snapshot_and_version:
             dlt.view(
                 self.read_bronze,
                 name=self.view_name,
                 comment=f"input dataset view for{self.view_name}",
             )
-        elif isinstance(self.dataflowSpec, SilverDataflowSpec):
+        elif isinstance(self.dataflowSpec, SilverDataflowSpec) and not self.next_snapshot_and_version:
             silverDataflowSpec: SilverDataflowSpec = self.dataflowSpec
-            
 
             ## If there are DQEs in Silver layer,
             ## Create a second view for DQE operation
@@ -143,15 +207,50 @@ class DataflowPipeline:
             ## If it is a materialized view
             ## There is no need to read
             ## and will be done using SQL in the next step
-            if not silverDataflowSpec.materializedView:    
-                
+            if not silverDataflowSpec.materializedView:                
                 dlt.view(
                     self.read_silver,
                     name=self.view_name,
                     comment=f"input dataset view for{self.view_name}",
                 )
         else:
-            raise Exception("Dataflow read not supported for{}".format(type(self.dataflowSpec)))
+            if not self.next_snapshot_and_version:
+                raise Exception("Dataflow read not supported for {}".format(type(self.dataflowSpec)))
+        if self.appendFlows:
+            self.read_append_flows()
+
+    def read_append_flows(self):
+        '''Read Append Flows'''
+        if self.dataflowSpec.appendFlows:
+            append_flows_schema_map = self.dataflowSpec.appendFlowsSchemas
+            for append_flow in self.appendFlows:
+                flow_schema = None
+                if append_flows_schema_map:
+                    flow_schema = append_flows_schema_map.get(append_flow.name)
+                pipeline_reader = PipelineReaders(
+                    self.spark,
+                    append_flow.source_format,
+                    append_flow.source_details,
+                    append_flow.reader_options,
+                    json.loads(flow_schema) if flow_schema else None
+                )
+                if append_flow.source_format == "cloudFiles":
+                    dlt.view(pipeline_reader.read_dlt_cloud_files,
+                             name=f"{append_flow.name}_view",
+                             comment=f"append flow input dataset view for {append_flow.name}_view"
+                             )
+                elif append_flow.source_format == "delta":
+                    dlt.view(pipeline_reader.read_dlt_delta,
+                             name=f"{append_flow.name}_view",
+                             comment=f"append flow input dataset view for {append_flow.name}_view"
+                             )
+                elif append_flow.source_format == "eventhub" or append_flow.source_format == "kafka":
+                    dlt.view(pipeline_reader.read_kafka,
+                             name=f"{append_flow.name}_view",
+                             comment=f"append flow input dataset view for {append_flow.name}_view"
+                             )
+        else:
+            raise Exception(f"Append Flows not found for dataflowSpec={self.dataflowSpec}")
 
     def write(self):
         """Write DLT."""
@@ -165,7 +264,12 @@ class DataflowPipeline:
     def write_bronze(self):
         """Write Bronze tables."""
         bronze_dataflow_spec: BronzeDataflowSpec = self.dataflowSpec
-        if bronze_dataflow_spec.dataQualityExpectations:
+        if bronze_dataflow_spec.sourceFormat and bronze_dataflow_spec.sourceFormat.lower() == "snapshot":
+            if self.next_snapshot_and_version:
+                self.apply_changes_from_snapshot()
+            else:
+                raise Exception("Snapshot reader function not provided!")
+        elif bronze_dataflow_spec.dataQualityExpectations:
             self.write_bronze_with_dqe()
         elif bronze_dataflow_spec.cdcApplyChanges:
             self.cdc_apply_changes()
@@ -180,6 +284,8 @@ class DataflowPipeline:
                 path=target_path,
                 comment=f"bronze dlt table{bronze_dataflow_spec.targetDetails['table']}",
             )
+        if bronze_dataflow_spec.appendFlows:
+            self.write_append_flows()
 
     def write_silver(self):
         """Write silver tables."""
@@ -188,8 +294,7 @@ class DataflowPipeline:
             self.create_materialized_view()
         elif silver_dataflow_spec.cdcApplyChanges:
             self.cdc_apply_changes()
-        # elif silver_dataflow_spec.dataQualityExpectations:
-        #     self.write_silver_with_dqe()
+
         else:
             target_path = None if self.uc_enabled else silver_dataflow_spec.targetDetails["path"]
             dlt.table(
@@ -201,19 +306,49 @@ class DataflowPipeline:
                 path=target_path,
                 comment=f"silver dlt table{silver_dataflow_spec.targetDetails['table']}",
             )
+        if silver_dataflow_spec.appendFlows:
+            self.write_append_flows()
 
     def read_bronze(self) -> DataFrame:
         """Read Bronze Table."""
         logger.info("In read_bronze func")
+        pipeline_reader = PipelineReaders(
+            self.spark,
+            self.dataflowSpec.sourceFormat,
+            self.dataflowSpec.sourceDetails,
+            self.dataflowSpec.readerConfigOptions,
+            self.dataflowSpec.cloudFileNotificationsConfig,
+            self.schema_json
+        )
         bronze_dataflow_spec: BronzeDataflowSpec = self.dataflowSpec
+        input_df = None
         if bronze_dataflow_spec.sourceFormat == "cloudFiles":
-            return PipelineReaders.read_dlt_cloud_files(self.spark, bronze_dataflow_spec, self.schema_json)
+            #return PipelineReaders.read_dlt_cloud_files(self.spark, bronze_dataflow_spec, self.schema_json)
+            input_df = pipeline_reader.read_dlt_cloud_files()
         elif bronze_dataflow_spec.sourceFormat == "delta":
-            return PipelineReaders.read_dlt_delta(self.spark, bronze_dataflow_spec)
+            #return PipelineReaders.read_dlt_delta(self.spark, bronze_dataflow_spec)
+            return pipeline_reader.read_dlt_delta()
         elif bronze_dataflow_spec.sourceFormat == "eventhub" or bronze_dataflow_spec.sourceFormat == "kafka":
-            return PipelineReaders.read_kafka(self.spark, bronze_dataflow_spec, self.schema_json)
+            #return PipelineReaders.read_kafka(self.spark, bronze_dataflow_spec, self.schema_json)
+            return pipeline_reader.read_kafka()
         else:
             raise Exception(f"{bronze_dataflow_spec.sourceFormat} source format not supported")
+        ## TODO: Apply custom transformation function to input DataFrame if provided.
+        #return self.apply_custom_transform_fun(input_df)
+        return input_df
+
+    def apply_custom_transform_fun(self, input_df):
+        """Apply custom transformation function to input DataFrame if provided.
+
+        Args:
+            input_df (DataFrame): Input DataFrame to transform
+
+        Returns:
+            DataFrame: Transformed DataFrame if custom function exists, otherwise original DataFrame
+        """
+        if self.custom_transform_func:
+            input_df = self.custom_transform_func(input_df, self.dataflowSpec)
+        return input_df
 
     def get_silver_schema(self):
         """Get Silver table Schema."""
@@ -299,6 +434,21 @@ class DataflowPipeline:
     def write_to_delta(self):
         """Write to Delta."""
         return dlt.read_stream(self.view_name)
+
+    def apply_changes_from_snapshot(self):
+        target_path = None if self.uc_enabled else self.dataflowSpec.targetDetails["path"]
+        self.create_streaming_table(None, target_path)
+        dlt.apply_changes_from_snapshot(
+            target=f"{self.dataflowSpec.targetDetails['table']}",
+            source=lambda latest_snapshot_version:
+            self.next_snapshot_and_version(latest_snapshot_version,
+                                           self.dataflowSpec
+                                           ),
+            keys=self.appy_changes_from_snapshot.keys,
+            stored_as_scd_type=self.appy_changes_from_snapshot.scd_type,
+            track_history_column_list=self.appy_changes_from_snapshot.track_history_column_list,
+            track_history_except_column_list=self.appy_changes_from_snapshot.track_history_except_column_list,
+        )
 
     def write_bronze_with_dqe(self):
         """Write Bronze table with data quality expectations."""
@@ -390,7 +540,39 @@ class DataflowPipeline:
                         {bronzeDataflowSpec.quarantineTargetDetails['table']}""",
                     )
                 )
-        
+    def write_append_flows(self):
+        """Creates an append flow for the target specified in the dataflowSpec.
+
+        This method creates a streaming table with the given schema and target path.
+        It then appends the flow to the table using the specified parameters.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        for append_flow in self.appendFlows:
+            struct_schema = None
+            if self.schema_json:
+                struct_schema = (
+                    StructType.fromJson(self.schema_json)
+                    if isinstance(self.dataflowSpec, BronzeDataflowSpec)
+                    else self.silver_schema
+                )
+            append_flow_writer = AppendFlowWriter(
+                self.spark, append_flow,
+                self.dataflowSpec.targetDetails['table'],
+                struct_schema,
+                self.dataflowSpec.tableProperties,
+                self.dataflowSpec.partitionColumns,
+                self.dataflowSpec.clusterBy
+            )
+            append_flow_writer.write_flow()
+            ###### CONTINUE HERE
+            # DANCE DANCE DANCE
+            # :-) :-)
+
     def cdc_apply_changes(self):
         """CDC Apply Changes against dataflowspec."""
         cdc_apply_changes = self.cdcApplyChanges
