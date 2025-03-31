@@ -68,8 +68,8 @@ spark.sql(f'CREATE TABLE IF NOT EXISTS {meta_catalog}{env}.{meta_schema}.silver_
     tableProperties MAP < STRING,STRING >, \
     selectExp ARRAY < STRING >, \
     whereClause ARRAY < STRING >, \
-    liquidClusteringColumns ARRAY < STRING >, \
-    clusteringColumns ARRAY < STRING >, \
+    partitionColumns ARRAY < STRING >,\
+    liquidClusteringColumns ARRAY < STRING >,\
     cdcApplyChanges STRING, \
     materializedView STRING, \
     dataQualityExpectations STRING, \
